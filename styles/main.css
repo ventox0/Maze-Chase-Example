@@ -1,0 +1,8 @@
+/* Sıralama mevcut görünümün CSS önceliklerini korur. */
+@import url("./base.css");
+@import url("./game.css");
+@import url("./menus.css");
+@import url("./ghosts.css");
+@import url("./cutscenes.css");
+@import url("./levels.css");
+@import url("./shop.css");

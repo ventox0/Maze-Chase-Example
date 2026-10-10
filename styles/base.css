@@ -1,0 +1,128 @@
+:root {
+  color-scheme: dark;
+  --bg: #090a15;
+  --panel: #10111f;
+  --line: #252638;
+  --muted: #9193aa;
+  --text: #f2f1fa;
+  --yellow: #ffe15b;
+  --purple: #a28bff;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 42% 40%, #33215b25, transparent 65%);
+}
+button {
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+button:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 5px;
+}
+.shell {
+  position: relative;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 44px;
+}
+.topbar {
+  height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+.brand-mark {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 7px #ffe15b35);
+}
+.online {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  letter-spacing: 1.7px;
+  color: var(--muted);
+}
+.online::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #80e8b2;
+  box-shadow: 0 0 10px #80e8b250;
+}
+.intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  margin: 31px 0 25px;
+}
+.eyebrow {
+  margin: 0 0 8px;
+  font-size: 10px;
+  letter-spacing: 2.4px;
+  font-weight: 700;
+  color: var(--purple);
+}
+h1 {
+  margin: 0;
+  font-size: 37px;
+  font-weight: 850;
+  letter-spacing: -1.7px;
+  line-height: 1.08;
+}
+h1 span {
+  color: var(--yellow);
+}
+.subtitle {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.edition {
+  color: #64657e;
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding-bottom: 3px;
+}
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 620px) minmax(230px, 1fr);
+  gap: 24px;
+  align-items: start;
+}

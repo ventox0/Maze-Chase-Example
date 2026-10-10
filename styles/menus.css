@@ -1,0 +1,420 @@
+.loadout-dialog {
+  width: min(540px, calc(100% - 28px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 26px;
+  border: 1px solid #594775;
+  border-radius: 16px;
+  background: #111020;
+  color: var(--text);
+  box-shadow: 0 25px 100px #0009;
+}
+.loadout-dialog::backdrop {
+  background: #050610d9;
+  backdrop-filter: blur(5px);
+}
+.loadout-dialog h2 {
+  margin: 0 0 10px;
+  font-size: 27px;
+  letter-spacing: -0.8px;
+}
+.loadout-dialog p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.loadout-slots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 20px 0 16px;
+}
+.loadout-slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #1c1830;
+  border: 1px solid #3f345a;
+  color: #d8cfed;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 12px;
+}
+.loadout-slot[aria-pressed="true"] {
+  border-color: var(--yellow);
+  box-shadow: 0 0 0 1px #ffe15b30;
+}
+.loadout-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.loadout-option {
+  position: relative;
+  text-align: left;
+  padding: 16px 13px;
+  border: 1px solid #343047;
+  border-radius: 10px;
+  background: #171525;
+  color: #e7e1f4;
+}
+.loadout-option:hover {
+  background: #242037;
+}
+.loadout-option[aria-pressed="true"] {
+  border-color: #a28bff;
+  background: #262038;
+}
+.loadout-option strong {
+  display: block;
+  font-size: 13px;
+  margin: 10px 0 8px;
+}
+.loadout-option small {
+  display: block;
+  font-size: 10px;
+  line-height: 1.7;
+  color: #b2a9c5;
+}
+.loadout-symbol {
+  font-size: 22px;
+  color: var(--yellow);
+  display: flex;
+  align-items: center;
+  width: 46px;
+  height: 46px;
+}
+.loadout-badge {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  font:
+    700 10px ui-monospace,
+    monospace;
+  color: var(--yellow);
+}
+.loadout-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 20px;
+}
+.loadout-actions .primary {
+  margin: 0;
+}
+@media (max-width: 380px) {
+  .loadout-dialog {
+    padding: 18px;
+  }
+  .loadout-dialog h2 {
+    font-size: 23px;
+  }
+  .loadout-option {
+    padding: 12px 10px;
+  }
+  .loadout-option strong {
+    font-size: 11px;
+  }
+  .loadout-slot {
+    padding: 9px;
+    font-size: 10px;
+    gap: 7px;
+  }
+}
+@media (pointer: coarse) {
+  .touch-controls {
+    display: flex;
+  }
+}
+@media (max-width: 850px) {
+  .shell {
+    padding: 0 24px;
+  }
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 250px;
+    gap: 18px;
+  }
+  .card {
+    padding: 18px;
+  }
+  .stat + .stat {
+    padding-left: 15px;
+  }
+  .scorebar {
+    padding: 18px;
+  }
+  .arena {
+    width: calc(100% - 24px);
+    margin: 12px auto;
+  }
+  .stat-value {
+    font-size: 20px;
+  }
+  .life {
+    width: 15px;
+    height: 15px;
+  }
+  .lives {
+    gap: 5px;
+  }
+}
+@media (max-width: 680px) {
+  .shell {
+    padding: 0 18px;
+    max-width: 530px;
+  }
+  .topbar {
+    height: 65px;
+  }
+  .brand {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+  }
+  .online {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .intro {
+    margin: 25px 0 20px;
+  }
+  h1 {
+    font-size: 32px;
+  }
+  .edition {
+    display: none;
+  }
+  .layout {
+    display: flex;
+    flex-direction: column;
+  }
+  .machine {
+    width: 100%;
+  }
+  .sidebar {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .sidebar .enemies {
+    display: none;
+  }
+  .status-card {
+    order: -1;
+  }
+  .card-title {
+    margin-bottom: 16px;
+  }
+  .controls-row {
+    margin-bottom: 12px;
+  }
+  .footer {
+    font-size: 8px;
+    line-height: 1.7;
+  }
+  .overlay h2 {
+    font-size: 27px;
+  }
+  .overlay .hero-pac {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 18px;
+  }
+}
+@media (max-width: 380px) {
+  .brand {
+    font-size: 9px;
+    gap: 8px;
+  }
+  .online {
+    font-size: 7px;
+  }
+  .scorebar {
+    padding: 16px 14px;
+  }
+  .stat + .stat {
+    padding-left: 10px;
+  }
+  .machine-bottom {
+    padding: 12px;
+    gap: 6px;
+  }
+  .icon-button {
+    padding: 7px 6px;
+    font-size: 9px;
+    gap: 5px;
+  }
+  .icon-button svg {
+    width: 10px;
+    height: 10px;
+  }
+  .level {
+    font-size: 9px;
+  }
+  .overlay {
+    padding: 14px;
+  }
+  .overlay .hero-pac {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 10px;
+  }
+  .overlay-kicker {
+    font-size: 8px;
+    margin-bottom: 6px;
+  }
+  .overlay h2 {
+    font-size: 23px;
+    margin-bottom: 8px;
+  }
+  .overlay p {
+    font-size: 10px;
+  }
+  .primary {
+    margin-top: 14px;
+    padding: 11px 18px;
+    font-size: 11px;
+  }
+  .overlay .hint {
+    font-size: 9px;
+    margin-top: 8px;
+  }
+}
+@media (max-width: 380px) {
+  .abilities {
+    padding: 0 12px 12px;
+    gap: 7px;
+  }
+  .ability {
+    padding: 9px 7px;
+    gap: 7px;
+  }
+  .ability strong {
+    font-size: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+  }
+}
+
+/* Dil düğmesi ilk menüde ve oyun sırasında kullanılabilir. */
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.language-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px;
+  background: #171525;
+  border: 1px solid #41375c;
+  border-radius: 7px;
+  color: #d8cfed;
+  font:
+    700 10px ui-monospace,
+    monospace;
+}
+.language-toggle:hover {
+  border-color: var(--yellow);
+}
+.language-toggle svg {
+  display: block;
+  width: 26px;
+  height: 18px;
+  border-radius: 2px;
+}
+.menu-language {
+  display: flex;
+  gap: 5px;
+  padding: 4px;
+  margin-top: 16px;
+  border: 1px solid #39324f;
+  border-radius: 8px;
+  background: #111020;
+}
+.menu-language[hidden] {
+  display: none;
+}
+.menu-language button {
+  padding: 7px 15px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #b0afc7;
+  font-size: 11px;
+}
+.menu-language button[aria-pressed="true"] {
+  background: #ffe15b;
+  color: #16120a;
+  font-weight: 800;
+}
+.card-title b {
+  font-weight: inherit;
+}
+.loadout-option small {
+  white-space: pre-line;
+}
+.overlay.language-menu .hero-pac {
+  width: 46px;
+  height: 46px;
+  margin-bottom: 16px;
+}
+.overlay.language-menu .primary {
+  margin-top: 16px;
+}
+@media (max-width: 680px) {
+  .brand-group {
+    gap: 10px;
+  }
+  .language-toggle {
+    padding: 6px;
+  }
+}
+@media (max-width: 380px) {
+  #language-code {
+    display: none;
+  }
+  .brand-group {
+    gap: 8px;
+  }
+  .language-toggle svg {
+    width: 22px;
+    height: 16px;
+  }
+  .brand-mark {
+    width: 24px;
+    height: 24px;
+  }
+  .brand {
+    letter-spacing: 1px;
+  }
+  .overlay.language-menu .hero-pac {
+    width: 26px;
+    height: 26px;
+    margin-bottom: 8px;
+  }
+  .overlay.language-menu h2 {
+    font-size: 21px;
+    margin-bottom: 6px;
+  }
+  .overlay.language-menu p {
+    line-height: 1.5;
+  }
+  .menu-language {
+    margin-top: 10px;
+  }
+  .menu-language button {
+    padding: 6px 13px;
+    font-size: 10px;
+  }
+  .overlay.language-menu .primary {
+    margin-top: 10px;
+    padding: 10px 15px;
+  }
+}

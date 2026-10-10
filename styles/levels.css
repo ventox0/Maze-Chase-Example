@@ -1,0 +1,254 @@
+.level-dialog {
+  width: min(750px, calc(100% - 30px));
+  max-height: 90vh;
+  max-height: 90dvh;
+  overflow: auto;
+  padding: 24px;
+  color: #eee9ff;
+  background: #11111f;
+  border: 1px solid #403552;
+  border-radius: 16px;
+  box-shadow: 0 25px 100px #0009;
+}
+.level-dialog::backdrop {
+  background: #050610db;
+  backdrop-filter: blur(5px);
+}
+.level-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+.level-top .menu-language {
+  margin: 0;
+  flex-shrink: 0;
+}
+.level-top h2 {
+  margin: 7px 0;
+  font-size: 28px;
+  letter-spacing: -0.8px;
+}
+#level-description,
+.save-note {
+  color: #a19bb4;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.level-jump {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 0;
+}
+.level-jump label {
+  font-size: 11px;
+  color: #d5c9ec;
+}
+#level-number {
+  width: 110px;
+  background: #090b16;
+  color: #ffe15b;
+  padding: 8px 10px;
+  border: 1px solid #403552;
+  border-radius: 7px;
+  font:
+    700 16px ui-monospace,
+    monospace;
+}
+.level-error {
+  min-height: 15px;
+  font-size: 10px;
+  color: #ffad9e;
+  margin: 5px 0;
+}
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+.level-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px 6px;
+  border: 1px solid #302a42;
+  border-radius: 9px;
+  background: #191625;
+  color: #e4dcf3;
+  cursor: pointer;
+}
+.level-card[aria-pressed="true"] {
+  border-color: var(--map-color);
+  box-shadow: inset 0 0 0 1px var(--map-color);
+  background: #242034;
+}
+.level-card:hover {
+  border-color: var(--map-color);
+}
+.level-card img {
+  width: 45px;
+  height: 49px;
+  object-fit: contain;
+}
+.level-card strong {
+  font-size: 13px;
+  color: var(--map-color);
+}
+.level-card span {
+  font-size: 9px;
+}
+.level-card small {
+  font-size: 8px;
+  color: #aaa1be;
+  line-height: 1.5;
+}
+.level-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin: 15px 0;
+}
+#level-range {
+  font:
+    700 10px ui-monospace,
+    monospace;
+  color: #c7b8e3;
+}
+.autosave-option {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  font-size: 11px;
+  color: #d5c9ec;
+  cursor: pointer;
+}
+#autosave-toggle {
+  accent-color: #a28bff;
+  width: 17px;
+  height: 17px;
+}
+.saved-title {
+  font-size: 12px;
+  margin: 22px 0 9px;
+}
+.no-saves {
+  font-size: 11px;
+  color: #9388a8;
+}
+.save-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #343047;
+  border-radius: 8px;
+  background: #171525;
+  margin-bottom: 8px;
+}
+.save-card strong {
+  font-size: 11px;
+  color: #ffe15b;
+}
+.save-card p {
+  font-size: 11px;
+  margin: 5px 0;
+}
+.save-card small {
+  font-size: 9px;
+  color: #a49bb6;
+}
+.level-actions {
+  position: sticky;
+  bottom: -24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px -24px -24px;
+  padding: 14px 24px;
+  border-top: 1px solid #403552;
+  background: #11111ff5;
+}
+.level-actions p {
+  font-size: 10px;
+  margin: 0;
+  color: #c7b8e3;
+}
+.level-actions > div {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.level-actions .primary {
+  margin: 0;
+  padding: 11px 16px;
+  font-size: 11px;
+}
+.resume-game {
+  margin-top: 10px;
+  padding: 8px 14px;
+  color: #d5c9ec;
+  font-size: 11px;
+  background: #211a32;
+}
+.resume-game[hidden] {
+  display: none;
+}
+.save-feedback {
+  margin: 0;
+  padding: 10px 22px;
+  border-top: 1px solid var(--line);
+  font-size: 10px;
+  color: #a8b8ad;
+  line-height: 1.5;
+}
+.save-feedback.save-error {
+  color: #ffad9e;
+}
+.actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+@media (max-width: 620px) {
+  .level-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .level-top {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .level-top h2 {
+    font-size: 25px;
+  }
+  .machine-bottom {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}
+@media (max-width: 400px) {
+  .level-dialog {
+    padding: 16px;
+  }
+  .level-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .level-actions {
+    bottom: -16px;
+    margin: 16px -16px -16px;
+    padding: 12px 16px;
+  }
+  .level-actions > div {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .save-feedback {
+    padding: 10px 14px;
+  }
+}

@@ -1,0 +1,83 @@
+.encounter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 22px 0;
+  color: #b5a6df;
+  font:
+    700 9px ui-monospace,
+    monospace;
+  letter-spacing: 0.5px;
+}
+#slow-notice {
+  color: #9bf282;
+}
+#slow-notice[hidden] {
+  display: none;
+}
+.ghost-card {
+  order: -1;
+}
+.ghost-portrait {
+  width: 30px;
+  height: 40px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.ghost-card .enemy-row {
+  align-items: flex-start;
+  margin-top: 15px;
+}
+.ghost-card .enemy-note {
+  line-height: 1.6;
+  color: #a19bb4;
+}
+.ghost-card .enemy-name {
+  color: var(--ghost);
+}
+.next-ghost {
+  font-size: 10px;
+  line-height: 1.7;
+  color: #ffe15b;
+  margin: 18px 0;
+}
+.ghost-guide {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.ghost-guide summary {
+  cursor: pointer;
+  color: #d8cfed;
+  font-size: 11px;
+}
+.ghost-guide .locked {
+  opacity: 0.48;
+}
+.ghost-unlock {
+  color: #b8a3e7;
+  font-size: 9px;
+  margin-top: 4px;
+}
+.ghost-tip {
+  color: #a19bb4;
+  font-size: 10px;
+  line-height: 1.7;
+  margin: 16px 0 0;
+}
+.loadout-dialog .loadout-enemies {
+  padding: 10px 12px;
+  border: 1px solid #39324f;
+  border-radius: 7px;
+  color: #d8caef;
+  font-size: 10px;
+}
+@media (max-width: 680px) {
+  .sidebar .ghost-card {
+    display: block;
+  }
+  .encounter-bar {
+    padding: 10px 14px 0;
+  }
+}
