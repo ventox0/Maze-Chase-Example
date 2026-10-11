@@ -1,4 +1,5 @@
 import { GameComponent } from "../core/GameComponent.js";
+import { MISSION_BY_ID } from "../data/missions.js";
 import { SHOP_ITEMS } from "../data/shop.js";
 
 // Bölüm skorundan bağımsız kalıcı cüzdan, envanter ve puan geçmişi.
@@ -73,6 +74,14 @@ export class PointWallet extends GameComponent {
       )
         return false;
       if (
+        p.missionRewards !== undefined &&
+        (!Array.isArray(p.missionRewards) ||
+          p.missionRewards.length > 100 ||
+          new Set(p.missionRewards).size !== p.missionRewards.length ||
+          p.missionRewards.some((id) => !MISSION_BY_ID.has(id)))
+      )
+        return false;
+      if (
         !p.runs ||
         typeof p.runs !== "object" ||
         Array.isArray(p.runs) ||
@@ -141,6 +150,22 @@ export class PointWallet extends GameComponent {
     next.runs[runId] = Math.max(next.runs[runId] || 0, score);
     this.prune(next);
     this.persist(next);
+  }
+  claimMission(id) {
+    const mission = MISSION_BY_ID.get(id);
+    if (!mission) return false;
+    this.refresh();
+    const next = this.clone();
+    if ((next.missionRewards || []).includes(id)) return false;
+    if (
+      !this.integer(next.totalEarned + mission.reward) ||
+      !this.integer(next.balance + mission.reward)
+    )
+      return false;
+    next.missionRewards = [...(next.missionRewards || []), id];
+    next.totalEarned += mission.reward;
+    next.balance += mission.reward;
+    return this.persist(next, true);
   }
   credit(points) {
     if (!Number.isSafeInteger(points) || points <= 0) return;

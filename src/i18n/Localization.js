@@ -52,6 +52,7 @@ export class Localization extends GameComponent {
         String(button.dataset.language === this.language),
       );
     });
+    this.game.settings.render();
     this.game.ui.renderSoundControl();
     this.game.ui.renderStateScreen();
     this.game.abilities.renderLoadout();
@@ -63,6 +64,8 @@ export class Localization extends GameComponent {
     this.game.shop.renderFeedback();
     if (this.game.shop.dialog.open) this.game.shop.render();
     if (this.game.levels.dialog.open) this.game.levels.renderMenu();
+    if (this.game.challengeMenu.dialog.open) this.game.challengeMenu.render();
+    if (this.game.missionMenu.dialog.open) this.game.missionMenu.render();
     if (this.game.ui.lastAnnouncement) {
       const values = { ...this.game.ui.lastAnnouncement.values };
       if (this.game.ui.lastAnnouncement.key === "announce.victory")

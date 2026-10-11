@@ -1,4 +1,4 @@
-import { $ } from "../core/dom.js";
+import { $, loadoutDialog } from "../core/dom.js";
 import { GameComponent } from "../core/GameComponent.js";
 import { ABILITIES, JUMP_DURATION } from "../data/abilities.js";
 import { SPRITE_SOURCES } from "../data/assets.js";
@@ -50,14 +50,35 @@ export class GameUI extends GameComponent {
   }
 
   renderStateScreen() {
-    this.elements.overlay.hidden =
-      this.game.state === "playing" || this.game.state === "cutscene";
+    this.elements.overlay.hidden = [
+      "playing",
+      "cutscene",
+      "transition",
+    ].includes(this.game.state);
     this.renderCutsceneUI();
+    this.game.arcade.renderUI();
     $("menu-language").hidden = this.game.state !== "ready";
+    const challenge = this.game.challenges.active;
+    $("menu-modes").hidden = this.game.state !== "ready";
+    document
+      .querySelectorAll("[data-mode]")
+      .forEach((button) =>
+        button.setAttribute(
+          "aria-pressed",
+          String(button.dataset.mode === this.game.menuMode),
+        ),
+      );
+    const ended =
+      challenge && ["victory", "gameover"].includes(this.game.state);
+    $("challenge-retry").hidden = !ended;
+    $("challenge-menu-button").hidden = !ended;
     const slot = this.game.saves.latest(),
       record = slot ? this.game.saves.slots[slot] : null;
     $("resume-game").hidden =
-      !record || !["ready", "gameover"].includes(this.game.state);
+      !record ||
+      challenge ||
+      this.game.menuMode === "challenge" ||
+      !["ready", "gameover"].includes(this.game.state);
     if (record)
       $("resume-game").textContent = this.game.i18n.t("save.continue", {
         level: record.data.level,
@@ -114,6 +135,29 @@ export class GameUI extends GameComponent {
         "gameover.action",
       ],
     };
+    if (this.game.state === "ready" && this.game.menuMode === "challenge")
+      screens.ready = [
+        "challenge.kicker",
+        "challenge.title",
+        "challenge.description",
+        "challenge.generate",
+      ];
+    if (ended) {
+      const won = this.game.challenges.result.won;
+      screens[this.game.state] = [
+        "challenge.kicker",
+        won ? "challenge.won" : "challenge.lost",
+        won ? "challenge.wonDescription" : "challenge.lostDescription",
+        "challenge.new",
+      ];
+      values.reason = this.game.i18n.t(
+        "challenge.failure." + this.game.challenges.result.reason,
+        this.game.challenges.failureValues(),
+      );
+      values.points = this.game.i18n.formatScore(
+        this.game.challenges.current.reward,
+      );
+    }
     if (screens[this.game.state]) {
       const [kicker, title, description, button] = screens[this.game.state];
       this.elements.kicker.textContent = this.game.i18n.t(kicker);
@@ -139,6 +183,7 @@ export class GameUI extends GameComponent {
       this.game.level,
       this.game.state,
       this.game.maze.phase,
+      this.game.mode,
       Math.ceil(remaining),
     ].join("|");
     if (key !== this.lastHud) {
@@ -150,17 +195,28 @@ export class GameUI extends GameComponent {
         5,
         "0",
       );
-      this.elements.level.textContent = String(this.game.level).padStart(
-        2,
-        "0",
+      this.elements.level.textContent = this.game.challenges.active
+        ? this.game.i18n.t(
+            "challenge." + this.game.challenges.current.difficulty,
+          )
+        : String(this.game.level).padStart(2, "0");
+      $("level-label").textContent = this.game.i18n.t(
+        this.game.challenges.active ? "challenge.difficulty" : "levelLabel",
       );
       $("map-label").textContent = this.game.i18n.t("map.label", {
         name: this.game.i18n.t(
-          "map." + this.game.maze.mapStyle(this.game.level).id,
+          "map." +
+            this.game.maze.mapStyle(
+              this.game.challenges.active
+                ? this.game.challenges.current.styleLevel
+                : this.game.level,
+            ).id,
         ),
       });
       $("map-label").style.color = this.game.maze.mapStyle(
-        this.game.level,
+        this.game.challenges.active
+          ? this.game.challenges.current.styleLevel
+          : this.game.level,
       ).color;
       [...this.elements.lives.children].forEach((el, i) =>
         el.classList.toggle("lost", i >= this.game.lives),
@@ -177,12 +233,52 @@ export class GameUI extends GameComponent {
           ? this.game.i18n.t("bonusTarget")
           : remaining > 0
             ? this.game.i18n.t("hunt", { seconds: Math.ceil(remaining) })
-            : this.game.i18n.t("findPower");
+            : this.game.i18n.t(
+                this.game.challenges.active &&
+                  this.game.challenges.current.rule === "noPower"
+                  ? "challenge.noPowerHint"
+                  : "findPower",
+              );
       this.lastHud = key;
     }
+    this.game.arcade.renderUI();
     this.game.shop.updateWallet();
+    this.game.missionMenu.updateBadge();
     $("save-button").disabled = !this.game.saves.canSave();
-    $("home-button").disabled = !this.game.saves.canSave();
+    $("home-button").disabled = this.game.challenges.active
+      ? this.game.state === "ready" ||
+        this.game.challengeMenu.dialog.open ||
+        this.game.shop.dialog.open ||
+        this.game.settings.dialog.open ||
+        this.game.missionMenu.dialog.open ||
+        loadoutDialog.open
+      : !this.game.saves.canSave();
+    $("home-button").textContent = this.game.i18n.t(
+      this.game.challenges.active ? "challenge.menu" : "save.home",
+    );
+    $("challenge-hud").hidden = !this.game.challenges.active;
+    if (this.game.challenges.active) {
+      const c = this.game.challenges.current;
+      $("challenge-hud-rule").textContent = this.game.i18n.t(
+        "challenge.rule." + c.rule,
+      );
+      $("challenge-hud-progress").textContent =
+        this.game.maze.phase === "bonus"
+          ? this.game.i18n.t("bonusTarget")
+          : this.game.i18n.t("challenge.remaining", {
+              count: this.game.maze.pellets,
+            });
+      const objective = this.game.challenges.progressText();
+      if (objective)
+        $("challenge-hud-progress").textContent += " · " + objective;
+      const seconds = Math.max(0, Math.ceil(c.timeLimit - this.game.gameTime));
+      $("challenge-hud-timer").textContent = c.timeLimit
+        ? Math.floor(seconds / 60) + ":" + String(seconds % 60).padStart(2, "0")
+        : "#" + c.code;
+    }
+    $("high-label").textContent = this.game.i18n.t(
+      this.game.challenges.active ? "challenge.high" : "high",
+    );
     $("bonus-banner").hidden =
       this.game.maze.phase !== "bonus" || this.game.state !== "playing";
     this.renderGhostRoster();
@@ -210,7 +306,7 @@ export class GameUI extends GameComponent {
       );
       this.lastPlayerSkin = skinKey;
     }
-    this.elements.bar.style.width = `${(remaining / POWER_DURATION) * 100}%`;
+    this.elements.bar.style.width = `${(remaining / (this.game.challenges.active ? this.game.challenges.current.powerDuration : POWER_DURATION)) * 100}%`;
     const readyAt = {
       jump: this.game.abilities.jumpReadyAt,
       magnet: this.game.abilities.magnetReadyAt,
@@ -231,8 +327,9 @@ export class GameUI extends GameComponent {
         button = $(`${slot}-button`);
       $(`${slot}-name`).textContent = this.game.i18n.abilityName(id);
       $(`${slot}-help`).textContent = this.game.i18n.abilityName(id);
-      $(`${slot}-status`).textContent =
-        id === "jump" && this.game.abilities.jump
+      $(`${slot}-status`).textContent = !this.game.challenges.skillsAllowed()
+        ? this.game.i18n.t(this.game.challenges.skillBlockKey())
+        : id === "jump" && this.game.abilities.jump
           ? this.game.i18n.t("jumping")
           : id === "jump" &&
               this.game.abilities.pendingJumpUntil > this.game.gameTime
@@ -248,6 +345,7 @@ export class GameUI extends GameComponent {
                     ),
                   });
       button.disabled =
+        !this.game.challenges.skillsAllowed() ||
         this.game.state !== "playing" ||
         wait > 0 ||
         (id === "jump" && !!this.game.abilities.jump);
@@ -284,6 +382,8 @@ export class GameUI extends GameComponent {
         "|" +
         this.game.level +
         "|" +
+        this.game.mode +
+        "|" +
         Object.keys(this.game.assets.ghosts).length;
     if (key === this.ghostHudKey) return;
     this.ghostHudKey = key;
@@ -297,9 +397,12 @@ export class GameUI extends GameComponent {
     $("next-ghost").textContent = next
       ? this.game.i18n.t("ghostNext", { name: next.name, level: next.unlock })
       : this.game.i18n.t("ghostAllUnlocked");
-    $("ghost-level-summary").textContent = this.game.i18n.t("ghostLevel", {
-      level: this.game.level,
-      count: roster.length,
-    });
+    $("ghost-level-summary").textContent = this.game.i18n.t(
+      this.game.challenges.active ? "challenge.ghosts" : "ghostLevel",
+      {
+        level: this.game.level,
+        count: roster.length,
+      },
+    );
   }
 }

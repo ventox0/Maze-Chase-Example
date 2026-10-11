@@ -1,6 +1,7 @@
 import { canvas, ctx } from "../core/dom.js";
 import { GameComponent } from "../core/GameComponent.js";
 import { JUMP_DURATION, MAGNET_RADIUS } from "../data/abilities.js";
+import { PlayerAnimation } from "./PlayerAnimation.js";
 import {
   COLS,
   DIRS,
@@ -15,6 +16,7 @@ import {
 export class CanvasRenderer extends GameComponent {
   constructor(game) {
     super(game);
+    this.playerAnimation = new PlayerAnimation();
   }
 
   configureCanvas() {
@@ -26,9 +28,8 @@ export class CanvasRenderer extends GameComponent {
 
   drawPlayer() {
     const p = this.game.movement.position(this.game.player.entity),
-      mouth = this.game.player.entity.moving
-        ? 0.16 + Math.abs(Math.sin(this.game.gameTime * 13)) * 0.65
-        : 0.22;
+      pose = this.playerAnimation.pose(this.game.settings.reduced),
+      mouth = pose.mouth;
     const skin = this.game.player.currentPlayerSkin(),
       image =
         this.game.shop.playerSprite(skin) || this.game.assets.players[skin];
@@ -47,31 +48,23 @@ export class CanvasRenderer extends GameComponent {
     if (
       this.game.state === "playing" &&
       this.game.gameTime < this.game.invulnerableUntil &&
-      Math.floor(this.game.gameTime * 8) % 2 === 0
+      (this.game.settings.reduced ||
+        Math.floor(this.game.gameTime * 8) % 2 === 0)
     )
       ctx.globalAlpha = 0.45;
     if (image && image.complete && image.naturalWidth > 0) {
-      // Tek karelik çizime yürüyüş salınımı verilir; sola giderken yatay aynalanır.
-      const moving =
-          this.game.player.entity.moving && !this.game.abilities.jump,
-        bounce = moving
-          ? Math.sin(this.game.gameTime * 19) * 0.7
-          : Math.sin(this.game.gameTime * 3) * 0.15;
+      // Poz fiziğin merkezinde kalır; kostüm ve başlık tek model olarak salınır.
       if (this.game.player.entity.dir === "left") ctx.scale(-1, 1);
-      else if (this.game.player.entity.dir === "up") ctx.rotate(-0.12);
-      else if (this.game.player.entity.dir === "down") ctx.rotate(0.12);
-      if (moving)
-        ctx.scale(
-          1 + Math.sin(this.game.gameTime * 19) * 0.025,
-          1 - Math.sin(this.game.gameTime * 19) * 0.025,
-        );
+      ctx.rotate(pose.angle);
+      ctx.scale(pose.scaleX, pose.scaleY);
       const size = TILE * 1.18;
-      ctx.drawImage(image, -size / 2, -size / 2 + bounce, size, size);
+      ctx.drawImage(image, -size / 2, -size / 2 + pose.bob, size, size);
       ctx.restore();
       return;
     }
     // Yükleme tamamlanana kadar klasik animasyon kullanılır.
     ctx.rotate(DIRS[this.game.player.entity.dir].angle);
+    ctx.scale(pose.scaleX, pose.scaleY);
     ctx.fillStyle = "#ffe15b";
     ctx.shadowColor = "#ffe15b";
     ctx.shadowBlur = 10;
@@ -154,6 +147,7 @@ export class CanvasRenderer extends GameComponent {
         this.game.gameTime >= ghost.immuneUntil;
     const blink =
       frightened &&
+      !this.game.settings.reduced &&
       this.game.powerUntil - this.game.gameTime < 3 &&
       Math.floor(this.game.gameTime * 5) % 2 === 0;
     const color = frightened ? (blink ? "#e5e9ff" : "#7186f8") : ghost.color;
@@ -226,6 +220,9 @@ export class CanvasRenderer extends GameComponent {
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
     ctx.fillStyle = "#070914";
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.save();
+    const offset = this.game.arcade.offset();
+    ctx.translate(offset.x, offset.y);
     ctx.drawImage(this.game.maze.wallLayer, 0, 0, WIDTH, HEIGHT);
     for (let y = 0; y < ROWS; y++)
       for (let x = 0; x < COLS; x++) {
@@ -335,7 +332,9 @@ export class CanvasRenderer extends GameComponent {
       ctx.fill();
     }
     ctx.globalAlpha = 1;
-    for (const p of this.game.effects.particles) {
+    for (const p of this.game.settings.effectsAllowed("particles")
+      ? this.game.effects.particles
+      : []) {
       ctx.globalAlpha = p.life / p.max;
       ctx.fillStyle = p.color;
       ctx.fillRect(p.x - 1.5, p.y - 1.5, 3, 3);
@@ -349,6 +348,8 @@ export class CanvasRenderer extends GameComponent {
     }
     ctx.globalAlpha = 1;
     if (this.game.cutscenes.current) this.game.cutscenes.drawCutscene();
+    ctx.restore();
+    this.game.arcade.drawFeedback(ctx);
   }
 
   drawLifePellet(time) {

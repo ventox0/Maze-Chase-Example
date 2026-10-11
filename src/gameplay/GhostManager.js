@@ -188,6 +188,9 @@ export class GhostManager extends GameComponent {
       (3.45 + Math.min(this.game.level - 1, 8) * 0.14) * TILE * ghost.speed;
     return (
       base *
+      (this.game.challenges.active && !this.ghostFrightened(ghost)
+        ? this.game.challenges.current.ghostMultiplier
+        : 1) *
       (this.ghostFrightened(ghost) ? 0.7 : this.sprinting(ghost) ? 1.35 : 1)
     );
   }

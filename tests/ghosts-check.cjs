@@ -1447,13 +1447,13 @@ const { fileURLToPath } = require("node:url");
     assert.equal(after.cutscene.elapsed, 0.8);
   });
   check(
-    "1,3 saniye sonra kaldığı yerden devam eder; respawn hâlâ 3 saniyedir",
+    "2,4 saniye sonra kaldığı yerden devam eder; respawn hâlâ 3 saniyedir",
     () => {
       t.startGame();
       t.set("time", 2);
       const g = capture();
-      t.update(0.6);
-      t.update(0.7);
+      t.update(1.2);
+      t.update(1.2);
       assert.equal(t.get().state, "playing");
       assert.equal(t.get().cutscene, null);
       assert.equal(t.get().gameTime, 2);

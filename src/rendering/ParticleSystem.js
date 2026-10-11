@@ -23,6 +23,7 @@ export class ParticleSystem extends GameComponent {
   }
 
   burst(x, y, color, count = 9) {
+    if (!this.game.settings.effectsAllowed("particles")) return;
     for (let i = 0; i < count; i++) {
       const a = Math.random() * Math.PI * 2,
         s = 20 + Math.random() * 70;

@@ -19,6 +19,7 @@ export class PlayerController extends GameComponent {
     if (game.abilities.jump) game.abilities.advanceJump(dt);
     else {
       this.eatPellet();
+      if (game.state !== "playing") return;
       game.movement.move(
         this.entity,
         speed * dt,

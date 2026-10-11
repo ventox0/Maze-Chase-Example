@@ -16,6 +16,12 @@ export class InputController extends GameComponent {
     window.addEventListener("keydown", (event) => {
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      if (
+        this.game.settings.dialog.open ||
+        this.game.challengeMenu.dialog.open ||
+        this.game.missionMenu.dialog.open
+      )
+        return;
       // Bayrak ve dil seçeneklerinde Space/Enter standart düğme davranışını korur.
       if (
         (event.code === "Space" || event.key === "Enter") &&
@@ -26,6 +32,12 @@ export class InputController extends GameComponent {
           event.target.id === "home-button" ||
           event.target.id === "resume-game" ||
           event.target.id === "shop-button" ||
+          event.target.id === "settings-button" ||
+          event.target.id === "missions-button" ||
+          event.target.id === "skip-transition" ||
+          event.target.dataset.mode ||
+          event.target.id === "challenge-retry" ||
+          event.target.id === "challenge-menu-button" ||
           event.target.dataset.language)
       )
         return;
@@ -66,6 +78,11 @@ export class InputController extends GameComponent {
         if (!event.repeat) this.game.cutscenes.finishCutscene();
         return;
       }
+      if (this.game.state === "transition" && event.key === "Enter") {
+        event.preventDefault();
+        if (!event.repeat) this.game.arcade.finishTransition();
+        return;
+      }
       if (KEYS[key]) {
         event.preventDefault();
         this.game.player.setDirection(KEYS[key]);
@@ -80,7 +97,7 @@ export class InputController extends GameComponent {
         if (!event.repeat) this.game.togglePause();
       } else if (event.key === "Escape") {
         event.preventDefault();
-        if (this.game.state === "playing" || this.game.state === "cutscene")
+        if (["playing", "cutscene", "transition"].includes(this.game.state))
           this.game.togglePause();
       } else if (event.key === "Enter" && !event.repeat) {
         if (event.target instanceof HTMLButtonElement) return;
@@ -88,6 +105,66 @@ export class InputController extends GameComponent {
         this.game.mainAction();
       }
     });
+    this.game.settings.bindEvents();
+    $("missions-button").addEventListener("click", this.game.missionMenu.open);
+    $("missions-close").addEventListener("click", this.game.missionMenu.close);
+    $("missions-prev").addEventListener("click", () =>
+      this.game.missionMenu.changePage(-1),
+    );
+    $("missions-next").addEventListener("click", () =>
+      this.game.missionMenu.changePage(1),
+    );
+    $("missions-category").addEventListener("change", (event) =>
+      this.game.missionMenu.setCategory(event.target.value),
+    );
+    $("missions-claim-all").addEventListener(
+      "click",
+      this.game.missionMenu.claimAll,
+    );
+    this.game.missionMenu.dialog.addEventListener("cancel", (event) => {
+      event.preventDefault();
+      this.game.missionMenu.close();
+    });
+    this.game.missionMenu.dialog.addEventListener("click", (event) => {
+      const filter = event.target.closest("[data-mission-filter]");
+      if (filter) this.game.missionMenu.setFilter(filter.dataset.missionFilter);
+      const claim = event.target.closest("[data-mission-claim]");
+      if (claim && !claim.disabled)
+        this.game.missionMenu.claim(claim.dataset.missionClaim);
+    });
+    document
+      .querySelectorAll("[data-mode]")
+      .forEach((button) =>
+        button.addEventListener("click", () =>
+          this.game.challengeMenu.chooseMode(button.dataset.mode),
+        ),
+      );
+    $("challenge-reroll").addEventListener(
+      "click",
+      this.game.challengeMenu.reroll,
+    );
+    $("challenge-difficulty").addEventListener("change", (event) =>
+      this.game.challengeMenu.setDifficulty(event.target.value),
+    );
+    $("challenge-confirm").addEventListener(
+      "click",
+      this.game.challengeMenu.confirm,
+    );
+    $("challenge-cancel").addEventListener("click", () =>
+      this.game.challengeMenu.dialog.close(),
+    );
+    $("challenge-retry").addEventListener(
+      "click",
+      this.game.challengeMenu.retry,
+    );
+    $("challenge-menu-button").addEventListener(
+      "click",
+      this.game.challenges.menu,
+    );
+    $("skip-transition").addEventListener(
+      "click",
+      this.game.arcade.finishTransition,
+    );
     $("shop-button").addEventListener("click", this.game.shop.open);
     $("shop-close").addEventListener("click", this.game.shop.close);
     $("shop-close-bottom").addEventListener("click", this.game.shop.close);
@@ -118,10 +195,15 @@ export class InputController extends GameComponent {
         ](action.dataset.shopId);
     });
     window.addEventListener("storage", (event) => {
+      if (event.key === this.game.missions.key) {
+        this.game.missions.refresh();
+        if (this.game.missionMenu.dialog.open) this.game.missionMenu.render();
+      }
       if (event.key === this.game.wallet.key) {
         this.game.wallet.refresh();
         this.game.ui.lastPlayerSkin = "";
         if (this.game.shop.dialog.open) this.game.shop.render();
+        if (this.game.missionMenu.dialog.open) this.game.missionMenu.render();
         this.game.ui.updateHUD();
       }
     });
@@ -205,16 +287,19 @@ export class InputController extends GameComponent {
       this.game.abilities.cancelLoadout,
     );
     loadoutDialog.addEventListener("cancel", (event) => {
-      if (this.game.abilities.fromLevelMenu) {
+      if (
+        this.game.abilities.fromLevelMenu ||
+        this.game.abilities.loadoutNext === "challenge"
+      ) {
         event.preventDefault();
         this.game.abilities.cancelLoadout();
       }
     });
     $("sound-button").addEventListener("click", () => {
-      this.game.audio.enabled = !this.game.audio.enabled;
+      this.game.settings.update("sound", !this.game.audio.enabled);
       this.game.ui.renderSoundControl();
       this.game.audio.resumeAudio();
-      if (this.game.audio.enabled) this.game.audio.tone(660, 0.1);
+      if (this.game.audio.enabled) this.game.audio.play("preview");
     });
     document.querySelectorAll("[data-dir]").forEach((button) =>
       button.addEventListener("pointerdown", (event) => {
@@ -251,14 +336,14 @@ export class InputController extends GameComponent {
     document.addEventListener("visibilitychange", () => {
       if (
         document.hidden &&
-        (this.game.state === "playing" || this.game.state === "cutscene")
+        ["playing", "cutscene", "transition"].includes(this.game.state)
       )
         this.game.togglePause();
       this.game.lastFrame = 0;
       this.game.accumulator = 0;
     });
     window.addEventListener("blur", () => {
-      if (this.game.state === "playing" || this.game.state === "cutscene")
+      if (["playing", "cutscene", "transition"].includes(this.game.state))
         this.game.togglePause();
     });
     window.addEventListener("resize", this.game.renderer.configureCanvas);

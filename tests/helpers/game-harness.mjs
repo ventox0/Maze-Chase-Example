@@ -58,7 +58,7 @@ const sandbox = {
   Object,
   Infinity,
   document: {
-    documentElement: { lang: "tr" },
+    documentElement: { lang: "tr", dataset: {} },
     querySelector: () => element("meta"),
     getElementById: element,
     createElement: () => element("canvas-" + Math.random()),
@@ -104,6 +104,8 @@ const { SHOP_ITEMS } = await import("../../src/data/shop.js");
 
 const game = new Game();
 game.start();
+// Mekanik regresyonları giriş beklemesini kapatır. Arcade testleri ayrıca açar.
+game.settings.values.transitions = false;
 sandbox.game = game;
 // Test adaptörü sınıfların gerçek metotlarını kullanır; oyun dosyasına eklenmez.
 const components = [

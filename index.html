@@ -34,7 +34,30 @@
             Kasaba Games
           </div>
         </div>
-        <div class="online" data-i18n="online">TARAYICIYA HAZIR</div>
+        <div class="header-tools">
+          <div class="online" data-i18n="online">TARAYICIYA HAZIR</div>
+          <button
+            id="missions-button"
+            class="icon-button missions-button"
+            type="button"
+            data-i18n-aria="missions.title"
+            aria-label="Görevler"
+          >
+            <span aria-hidden="true">✓</span
+            ><span data-i18n="missions.title">Görevler</span
+            ><b id="missions-badge" class="missions-badge" hidden>0</b>
+          </button>
+          <button
+            id="settings-button"
+            class="icon-button"
+            type="button"
+            data-i18n-aria="settings.title"
+            aria-label="Ayarlar"
+          >
+            <span aria-hidden="true">⚙</span
+            ><span data-i18n="settings.title">Ayarlar</span>
+          </button>
+        </div>
       </header>
       <section class="intro" aria-labelledby="game-heading">
         <div>
@@ -45,7 +68,7 @@
           </p>
         </div>
         <span class="edition" data-i18n="version"
-          >pre.alpha.0.0.3 · HAYALET GÜNCELLEMESİ</span
+          >pre.alpha.0.0.5 · GÖREV GÜNCELLEMESİ</span
         >
       </section>
       <div class="layout">
@@ -60,7 +83,8 @@
               ><output id="score" class="stat-value">00000</output>
             </div>
             <div class="stat">
-              <span class="stat-label" data-i18n="high">EN YÜKSEK</span
+              <span id="high-label" class="stat-label" data-i18n="high"
+                >EN YÜKSEK</span
               ><output id="high-score" class="stat-value">00000</output>
             </div>
             <div class="stat">
@@ -90,11 +114,52 @@
               Puan dükkânı
             </button>
           </div>
+          <div
+            id="challenge-hud"
+            class="challenge-hud"
+            hidden
+            role="status"
+            aria-live="off"
+          >
+            <span id="challenge-hud-rule"></span
+            ><span id="challenge-hud-progress"></span
+            ><strong id="challenge-hud-timer"></strong>
+          </div>
           <div class="encounter-bar">
             <span id="ghost-level-summary"></span><span id="map-label"></span
             ><span id="slow-notice" hidden role="status"></span>
           </div>
           <div class="arena">
+            <div id="combo-display" class="combo-display" hidden>
+              <strong id="combo-count"></strong><span id="combo-points"></span>
+              <div class="combo-track"><i id="combo-meter"></i></div>
+            </div>
+            <div
+              id="level-transition"
+              class="level-transition"
+              hidden
+              role="status"
+              aria-live="polite"
+            >
+              <div class="transition-card">
+                <p class="eyebrow" data-i18n="arcade.ready">SIRADAKİ TUR</p>
+                <img data-sprite="normal" alt="" aria-hidden="true" />
+                <h2 id="transition-number"></h2>
+                <strong id="transition-map"></strong>
+                <p id="transition-ghosts"></p>
+                <div class="transition-track">
+                  <i id="transition-progress"></i>
+                </div>
+                <button
+                  id="skip-transition"
+                  class="icon-button"
+                  type="button"
+                  data-i18n="arcade.skip"
+                >
+                  Atla · Enter
+                </button>
+              </div>
+            </div>
             <canvas
               id="game"
               width="504"
@@ -173,6 +238,29 @@
                   English
                 </button>
               </div>
+              <div
+                id="menu-modes"
+                class="menu-modes"
+                role="group"
+                data-i18n-aria="challenge.chooseMode"
+              >
+                <button
+                  type="button"
+                  data-mode="campaign"
+                  aria-pressed="true"
+                  data-i18n="challenge.campaign"
+                >
+                  Bölümler
+                </button>
+                <button
+                  type="button"
+                  data-mode="challenge"
+                  aria-pressed="false"
+                  data-i18n="challenge.title"
+                >
+                  Challenge
+                </button>
+              </div>
               <button id="main-action" class="primary">
                 <span>Yetenek seç</span><span aria-hidden="true">→</span>
               </button>
@@ -181,6 +269,26 @@
                 class="icon-button resume-game"
                 hidden
               ></button>
+              <div class="challenge-result-actions">
+                <button
+                  id="challenge-retry"
+                  type="button"
+                  class="icon-button"
+                  data-i18n="challenge.retry"
+                  hidden
+                >
+                  Aynı challenge'ı dene
+                </button>
+                <button
+                  id="challenge-menu-button"
+                  type="button"
+                  class="icon-button"
+                  data-i18n="challenge.menu"
+                  hidden
+                >
+                  Ana menü
+                </button>
+              </div>
               <p id="overlay-hint" class="hint">veya Enter tuşuna bas</p>
             </div>
           </div>
@@ -247,7 +355,7 @@
           </div>
           <div class="machine-bottom">
             <span class="level"
-              ><span data-i18n="levelLabel">BÖLÜM</span>
+              ><span id="level-label" data-i18n="levelLabel">BÖLÜM</span>
               <b id="level">01</b></span
             >
             <div class="actions">
@@ -752,6 +860,304 @@
           Seç ve başla <span aria-hidden="true">→</span>
         </button>
       </div>
+    </dialog>
+
+    <dialog
+      id="settings-dialog"
+      class="settings-dialog"
+      aria-labelledby="settings-title"
+    >
+      <div class="settings-heading">
+        <div>
+          <p class="eyebrow" data-i18n="settings.kicker">
+            ARCADE SENİN TARZINDA
+          </p>
+          <h2 id="settings-title" data-i18n="settings.title">Ayarlar</h2>
+        </div>
+        <button
+          id="settings-close"
+          class="icon-button"
+          type="button"
+          data-i18n="settings.close"
+        >
+          Bitti
+        </button>
+      </div>
+      <p class="settings-description" data-i18n="settings.description">
+        Sesleri ve efektleri kendine göre ayarla. Açık menüde oyun bekler.
+      </p>
+      <fieldset>
+        <legend data-i18n="settings.audio">SES</legend>
+        <label class="setting-row"
+          ><span data-i18n="settings.sound">Oyun sesleri</span
+          ><input id="settings-sound" type="checkbox"
+        /></label>
+        <label class="setting-volume" for="settings-volume"
+          ><span data-i18n="settings.volume">Ses seviyesi</span
+          ><output id="settings-volume-value" for="settings-volume"
+            >65%</output
+          ></label
+        ><input
+          id="settings-volume"
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+          value="65"
+        />
+        <button
+          id="settings-preview"
+          class="icon-button"
+          type="button"
+          data-i18n="settings.preview"
+        >
+          Sesi dene
+        </button>
+      </fieldset>
+      <fieldset>
+        <legend data-i18n="settings.visual">GÖRSEL EFEKTLER</legend>
+        <label class="setting-row"
+          ><span data-i18n="settings.shake">Ekran sarsıntısı</span
+          ><input id="settings-shake" type="checkbox" checked
+        /></label>
+        <label class="setting-row"
+          ><span data-i18n="settings.particles">Parçacık efektleri</span
+          ><input id="settings-particles" type="checkbox" checked
+        /></label>
+        <label class="setting-row"
+          ><span data-i18n="settings.transitions">Bölüm girişleri</span
+          ><input id="settings-transitions" type="checkbox" checked
+        /></label>
+        <label class="setting-row"
+          ><span data-i18n="settings.reducedMotion">Hareketi azalt</span
+          ><input id="settings-reducedMotion" type="checkbox"
+        /></label>
+        <p id="settings-motion-note" class="settings-note"></p>
+      </fieldset>
+      <p id="settings-status" class="settings-note" role="status"></p>
+    </dialog>
+    <dialog
+      id="challenge-dialog"
+      class="challenge-dialog"
+      aria-labelledby="challenge-title"
+      aria-describedby="challenge-description"
+    >
+      <div class="challenge-dialog-top">
+        <div>
+          <span class="overlay-kicker" data-i18n="challenge.kicker"
+            >YENİ HARİTA. YENİ KURAL.</span
+          >
+          <h2 id="challenge-title" data-i18n="challenge.title">Challenge</h2>
+        </div>
+        <span id="challenge-code" class="challenge-code"></span>
+      </div>
+      <p id="challenge-description" data-i18n="challenge.description">
+        Rastgele bir labirentte tek bir özel kuralla oyna.
+      </p>
+      <label class="challenge-difficulty"
+        ><span data-i18n="challenge.difficulty">Zorluk</span
+        ><select id="challenge-difficulty">
+          <option value="easy" data-i18n="challenge.easy">Kolay</option>
+          <option value="normal" data-i18n="challenge.normal">Normal</option>
+          <option value="hard" data-i18n="challenge.hard">Zor</option>
+        </select></label
+      >
+      <div class="challenge-preview">
+        <div class="challenge-map-box">
+          <canvas
+            id="challenge-map"
+            width="126"
+            height="138"
+            role="img"
+            data-i18n-aria="challenge.mapAria"
+          ></canvas
+          ><span id="challenge-map-name"></span>
+        </div>
+        <div class="challenge-rule-box">
+          <span class="challenge-eyebrow" data-i18n="challenge.ruleLabel"
+            >BU DENEMENİN KURALI</span
+          >
+          <h3 id="challenge-rule"></h3>
+          <p id="challenge-rule-description"></p>
+          <div class="challenge-details">
+            <span id="challenge-lives"></span
+            ><strong id="challenge-reward"></strong>
+          </div>
+          <p id="challenge-enemies"></p>
+        </div>
+      </div>
+      <p class="challenge-note" data-i18n="challenge.note">
+        Tüm yemleri topla, ardından merkezdeki can yemine ulaş. Challenge kayıt
+        almaz; bölüm kayıtların korunur. Kazandığın puanlar cüzdanına eklenir.
+      </p>
+      <div class="challenge-actions">
+        <button
+          id="challenge-reroll"
+          type="button"
+          class="icon-button"
+          data-i18n="challenge.reroll"
+        >
+          Yeni challenge üret</button
+        ><button id="challenge-confirm" type="button" class="primary">
+          Başla
+        </button>
+      </div>
+      <button
+        id="challenge-cancel"
+        type="button"
+        class="challenge-cancel"
+        data-i18n="challenge.back"
+      >
+        Geri
+      </button>
+    </dialog>
+    <dialog
+      id="missions-dialog"
+      class="missions-dialog"
+      aria-labelledby="missions-title"
+      aria-describedby="missions-description"
+    >
+      <header class="missions-header">
+        <div>
+          <span class="overlay-kicker" data-i18n="missions.kicker"
+            >HER OYUNDA BİR ADIM DAHA.</span
+          >
+          <h2 id="missions-title" data-i18n="missions.title">Görevler</h2>
+        </div>
+        <button
+          id="missions-close"
+          class="icon-button"
+          type="button"
+          data-i18n="missions.close"
+        >
+          Oyuna dön
+        </button>
+      </header>
+      <p
+        id="missions-description"
+        class="missions-description"
+        data-i18n="missions.description"
+      >
+        100 hedef. Tüm görevler aynı anda ilerler. Oyna, tamamla, ödülünü topla.
+      </p>
+      <div class="missions-summary">
+        <div>
+          <span data-i18n="missions.completedLabel">TAMAMLANAN</span
+          ><strong id="missions-complete">0/100</strong>
+        </div>
+        <div>
+          <span data-i18n="missions.readyLabel">ÖDÜLÜ HAZIR</span
+          ><strong id="missions-ready">0</strong>
+        </div>
+        <div>
+          <span data-i18n="missions.claimedLabel">ÖDÜLÜ ALINAN</span
+          ><strong id="missions-claimed">0</strong>
+        </div>
+      </div>
+      <div class="missions-overall" aria-hidden="true">
+        <span id="missions-overall"></span>
+      </div>
+      <div class="missions-toolbar">
+        <div
+          class="missions-filters"
+          role="group"
+          data-i18n-aria="missions.statusFilter"
+        >
+          <button
+            type="button"
+            data-mission-filter="all"
+            aria-pressed="true"
+            data-i18n="missions.all"
+          >
+            Tümü</button
+          ><button
+            type="button"
+            data-mission-filter="active"
+            aria-pressed="false"
+            data-i18n="missions.active"
+          >
+            Devam eden</button
+          ><button
+            type="button"
+            data-mission-filter="ready"
+            aria-pressed="false"
+            data-i18n="missions.ready"
+          >
+            Ödülü hazır</button
+          ><button
+            type="button"
+            data-mission-filter="claimed"
+            aria-pressed="false"
+            data-i18n="missions.claimed"
+          >
+            Ödül alındı
+          </button>
+        </div>
+        <label class="missions-category-select"
+          ><span data-i18n="missions.categoryLabel">Kategori</span
+          ><select id="missions-category">
+            <option value="all" data-i18n="missions.allCategories">
+              Tüm kategoriler
+            </option>
+            <option value="score" data-i18n="missions.category.score">
+              Puan
+            </option>
+            <option value="pellets" data-i18n="missions.category.pellets">
+              Yemler
+            </option>
+            <option value="ghosts" data-i18n="missions.category.ghosts">
+              Hayaletler
+            </option>
+            <option value="abilities" data-i18n="missions.category.abilities">
+              Yetenekler
+            </option>
+            <option value="levels" data-i18n="missions.category.levels">
+              Bölümler
+            </option>
+            <option value="challenges" data-i18n="missions.category.challenges">
+              Challenge
+            </option>
+          </select></label
+        >
+      </div>
+      <div class="missions-pagination">
+        <span id="missions-range"></span>
+        <div>
+          <button
+            id="missions-prev"
+            type="button"
+            class="icon-button"
+            data-i18n="missions.prev"
+          >
+            Önceki</button
+          ><button
+            id="missions-next"
+            type="button"
+            class="icon-button"
+            data-i18n="missions.next"
+          >
+            Sonraki
+          </button>
+        </div>
+        <button
+          id="missions-claim-all"
+          type="button"
+          class="icon-button missions-claim-all"
+          data-i18n="missions.claimAll"
+        >
+          Hazır ödülleri topla
+        </button>
+      </div>
+      <div id="missions-list" class="missions-list"></div>
+      <p
+        id="missions-feedback"
+        class="missions-feedback"
+        role="status"
+        data-i18n="missions.hint"
+      >
+        İlerleme bu tarayıcıda saklanır. Ödüller cüzdanına eklenir; oyun skorunu
+        değiştirmez.
+      </p>
     </dialog>
     <script type="module" src="./src/main.js"></script>
   </body>

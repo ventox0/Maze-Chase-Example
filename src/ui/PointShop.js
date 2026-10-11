@@ -2,6 +2,7 @@ import { $, canvas, loadoutDialog } from "../core/dom.js";
 import { GameComponent } from "../core/GameComponent.js";
 import { SPRITE_SOURCES } from "../data/assets.js";
 import { SHOP_ITEMS } from "../data/shop.js";
+import { AVATAR_SIZE, avatarLayout } from "../rendering/AvatarLayout.js";
 
 // Puan dükkânı: önizleme, satın alma ve iki bağımsız giyim yuvası.
 export class PointShop extends GameComponent {
@@ -37,12 +38,17 @@ export class PointShop extends GameComponent {
   open() {
     if (
       this.dialog.open ||
+      this.game.settings.dialog.open ||
+      this.game.challengeMenu.dialog.open ||
+      this.game.missionMenu.dialog.open ||
       this.game.levels.dialog.open ||
       loadoutDialog.open ||
       this.game.state === "dying"
     )
       return;
-    this.resumeAfterClose = ["playing", "cutscene"].includes(this.game.state);
+    this.resumeAfterClose = ["playing", "cutscene", "transition"].includes(
+      this.game.state,
+    );
     if (this.resumeAfterClose) this.game.togglePause();
     this.game.wallet.refresh();
     this.render();
@@ -173,6 +179,9 @@ export class PointShop extends GameComponent {
     }
     $("shop-button").disabled =
       this.game.state === "dying" ||
+      this.game.settings.dialog.open ||
+      this.game.challengeMenu.dialog.open ||
+      this.game.missionMenu.dialog.open ||
       this.game.levels.dialog.open ||
       loadoutDialog.open;
   }
@@ -187,34 +196,24 @@ export class PointShop extends GameComponent {
     if (!body || body.complete === false || body.naturalWidth === 0)
       return SPRITE_SOURCES.normal;
     const image = document.createElement("canvas");
-    image.width = 192;
-    image.height = 192;
+    image.width = AVATAR_SIZE;
+    image.height = AVATAR_SIZE;
     const c = image.getContext("2d");
     const bw = body.width || body.naturalWidth,
       bh = body.height || body.naturalHeight;
-    const size = outfit ? 146 : 142,
-      scale = Math.min(size / bw, size / bh),
-      w = bw * scale,
-      h = bh * scale;
-    const x = (192 - w) / 2,
-      y = 184 - h;
-    c.drawImage(body, x, y, w, h);
-    if (head && hat) {
-      const item = this.item(head),
-        faceY = outfit ? y + h * 0.32 : y + h * 0.48,
-        r = outfit ? w * 0.29 : w * 0.43;
-      const hw = hat.width || hat.naturalWidth,
-        hh = hat.height || hat.naturalHeight;
-      let width = r * (item.wrap ? 2.45 : 2.28),
-        height = (width * hh) / hw;
-      // Kask ve kulaklık yüzü çevreler; diğer parçalar üst yayda durur.
-      let top = item.wrap ? faceY - height * 0.5 : faceY + r * 0.06 - height;
-      if (top < 5) {
-        height *= Math.max(0.65, (faceY + r * 0.06 - 5) / height);
-        width = (height * hw) / hh;
-        top = 5;
-      }
-      c.drawImage(hat, (192 - width) / 2, top, width, height);
+    const layout = avatarLayout(
+      bw,
+      bh,
+      outfit,
+      head,
+      hat ? hat.width || hat.naturalWidth : 0,
+      hat ? hat.height || hat.naturalHeight : 0,
+    );
+    const b = layout.body;
+    c.drawImage(body, b.x, b.y, b.width, b.height);
+    if (layout.hat) {
+      const h = layout.hat;
+      c.drawImage(hat, h.x, h.y, h.width, h.height);
     }
     const source = image.toDataURL("image/png");
     if (this.avatarCache.size >= 96) {

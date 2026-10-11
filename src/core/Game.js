@@ -20,11 +20,22 @@ import { SaveManager } from "../storage/SaveManager.js";
 import { GameUI } from "../ui/GameUI.js";
 import { LevelSelection } from "../ui/LevelSelection.js";
 import { PointShop } from "../ui/PointShop.js";
+import { SettingsMenu } from "../ui/SettingsMenu.js";
+import { ArcadePresentation } from "../rendering/ArcadePresentation.js";
+
+import { ChallengeMode } from "../gameplay/ChallengeMode.js";
+import { ChallengeSelection } from "../ui/ChallengeSelection.js";
+import { CHALLENGE_HIGH_KEY } from "../data/challenges.js";
+
+import { MissionProgress } from "../storage/MissionProgress.js";
+import { MissionMenu } from "../ui/MissionMenu.js";
 
 // Sistemleri bir araya getirir; durum geçişleri ve sabit zamanlı oyun döngüsü.
 export class Game extends GameComponent {
   constructor() {
     super();
+    this.mode = "campaign";
+    this.menuMode = "campaign";
     this.score = 0;
     this.highScore = 0;
     this.lives = 3;
@@ -54,6 +65,12 @@ export class Game extends GameComponent {
     this.levels = new LevelSelection(this);
     this.wallet = new PointWallet(this);
     this.shop = new PointShop(this);
+    this.settings = new SettingsMenu(this);
+    this.arcade = new ArcadePresentation(this);
+    this.challenges = new ChallengeMode(this);
+    this.challengeMenu = new ChallengeSelection(this);
+    this.missions = new MissionProgress(this);
+    this.missionMenu = new MissionMenu(this);
     this.runId = this.wallet.newRunId();
   }
 
@@ -67,8 +84,11 @@ export class Game extends GameComponent {
       const stored = Number(localStorage.getItem("maze-chaser-high-score"));
       this.highScore = Number.isFinite(stored) ? Math.max(0, stored) : 0;
     } catch (_) {}
+    this.challenges.load();
+    this.settings.load();
     this.wallet.load();
     this.saves.load();
+    this.missions.load();
     this.assets.loadSprites();
     this.assets.loadGhostSprites();
     this.assets.loadActionSprites();
@@ -83,7 +103,9 @@ export class Game extends GameComponent {
 
   resetActors() {
     this.cutscenes.current = null;
+    this.arcade.reset();
     this.player.entity = { ...this.movement.actor(10, 17), next: "left" };
+    this.renderer.playerAnimation.reset();
     this.ghosts.entities = this.ghosts
       .levelGhosts(this.level)
       .map((g, index) => {
@@ -114,7 +136,9 @@ export class Game extends GameComponent {
     this.maze.phase = "maze";
     this.maze.bonusReward = "";
     this.maze.bonusRewardKey = "";
-    this.maze.grid = this.maze.createLevelMap(this.level);
+    this.maze.grid = this.challenges.active
+      ? this.challenges.createMap()
+      : this.maze.createLevelMap(this.level);
     this.maze.pellets = this.maze.grid
       .flat()
       .filter((cell) => cell === 2 || cell === 3).length;
@@ -131,11 +155,18 @@ export class Game extends GameComponent {
 
   startGame(startLevel = 1) {
     if (!this.saves.validLevel(startLevel)) return;
+    this.challenges.leave();
+    this.menuMode = "campaign";
+    this.startRun(startLevel);
+  }
+
+  startRun(startLevel, lives = 3) {
     this.runId = this.wallet.newRunId();
+    this.missions.beginRun();
     this.score = 0;
-    this.lives = 3;
+    this.lives = lives;
     this.level = startLevel;
-    this.levels.selected = startLevel;
+    if (!this.challenges.active) this.levels.selected = startLevel;
     this.gameTime = 0;
     this.newRecord = false;
     this.cutscenes.sequence = 0;
@@ -143,13 +174,15 @@ export class Game extends GameComponent {
     this.changeState("playing");
     this.ui.announce("announce.start");
     this.audio.resumeAudio();
+    this.arcade.beginTransition();
   }
 
   nextLevel() {
-    if (this.level >= MAX_LEVEL) return;
+    if (this.challenges.active || this.level >= MAX_LEVEL) return;
     this.level++;
     this.loadLevel();
     this.changeState("playing");
+    this.arcade.beginTransition();
     const fresh = GHOSTS.find((g) => g.unlock === this.level);
     this.ui.announce("announce.next", {
       level: this.level,
@@ -164,20 +197,53 @@ export class Game extends GameComponent {
 
   changeState(next, checkpoint = true) {
     const previous = this.state;
+    if (
+      checkpoint &&
+      next === "victory" &&
+      previous !== next &&
+      !this.challenges.active &&
+      this.maze.phase === "complete"
+    )
+      this.missions.record("levels");
+    if (next === "victory" || next === "gameover")
+      this.challenges.finish(next === "victory");
     this.state = next;
+    if (next === "gameover") this.arcade.hit = null;
     this.stateTime = 0;
     this.accumulator = 0;
+    if (["paused", "ready", "gameover", "victory"].includes(next))
+      this.audio.stopAll();
     this.ui.renderStateScreen();
+    this.saves.renderFeedback();
     this.ui.updateHUD();
-    if (checkpoint && next === "victory" && previous !== next)
+    if (
+      checkpoint &&
+      !this.challenges.active &&
+      next === "victory" &&
+      previous !== next
+    )
       this.saves.checkpoint();
   }
 
   mainAction() {
-    if (loadoutDialog.open || this.levels.dialog.open || this.shop.dialog.open)
+    if (
+      loadoutDialog.open ||
+      this.levels.dialog.open ||
+      this.shop.dialog.open ||
+      this.settings.dialog.open ||
+      this.challengeMenu.dialog.open ||
+      this.missionMenu.dialog.open
+    )
       return;
     this.audio.resumeAudio();
-    if (this.state === "ready" || this.state === "gameover") this.levels.open();
+    if (
+      (this.challenges.active &&
+        ["victory", "gameover"].includes(this.state)) ||
+      (this.state === "ready" && this.menuMode === "challenge")
+    )
+      this.challengeMenu.open();
+    else if (this.state === "ready" || this.state === "gameover")
+      this.levels.open();
     else if (this.state === "victory") {
       if (this.level === MAX_LEVEL) this.levels.open();
       else this.abilities.openLoadout("next");
@@ -189,16 +255,27 @@ export class Game extends GameComponent {
   }
 
   saveAndMenu() {
+    if (this.challenges.active) {
+      this.challenges.menu();
+      return;
+    }
     if (!this.saves.saveManual()) return;
     this.levels.selected = this.saves.slots.manual.data.level;
     this.cutscenes.current = null;
+    this.arcade.reset();
     this.lastFrame = 0;
     this.accumulator = 0;
     this.changeState("ready");
   }
 
   togglePause() {
-    if (this.state === "playing" || this.state === "cutscene") {
+    if (
+      this.settings.dialog.open ||
+      this.shop.dialog.open ||
+      this.missionMenu.dialog.open
+    )
+      return;
+    if (["playing", "cutscene", "transition"].includes(this.state)) {
       this.changeState("paused");
       this.ui.announce("announce.pause");
     } else if (this.state === "paused") this.resumeGameplay();
@@ -207,11 +284,18 @@ export class Game extends GameComponent {
   addScore(points) {
     this.score += points;
     this.wallet.credit(points);
+    this.missions.observeScore();
     if (this.score > this.highScore) {
       this.highScore = this.score;
       this.newRecord = true;
+      if (this.challenges.active) this.challenges.best = this.highScore;
       try {
-        localStorage.setItem("maze-chaser-high-score", String(this.highScore));
+        localStorage.setItem(
+          this.challenges.active
+            ? CHALLENGE_HIGH_KEY
+            : "maze-chaser-high-score",
+          String(this.highScore),
+        );
       } catch (_) {}
     }
   }
@@ -232,7 +316,10 @@ export class Game extends GameComponent {
         this.gameTime < this.powerUntil &&
         this.gameTime >= ghost.immuneUntil
       ) {
+        if (!this.challenges.beforeGhostCaught()) break;
         this.addScore(200);
+        this.missions.record("ghosts");
+        this.arcade.ghostCaught();
         this.effects.burst(g.x, g.y, ghost.color, 16);
         this.effects.floatingTexts.push({
           x: g.x,
@@ -248,7 +335,7 @@ export class Game extends GameComponent {
         ghost.skillReadyAt = ghost.releaseAt + 5;
         ghost.wallPlan = null;
         ghost.wallHop = null;
-        this.audio.tone(990, 0.14, "triangle", 0.06);
+        this.audio.play("ghost");
         this.cutscenes.beginCutscene(ghost);
         break;
       } else if (
@@ -256,7 +343,8 @@ export class Game extends GameComponent {
         this.gameTime >= this.abilities.shieldUntil
       ) {
         this.lives--;
-        this.audio.tone(130, 0.4, "sawtooth", 0.025);
+        this.arcade.combo = 0;
+        this.arcade.impact("hurt");
         this.effects.burst(p.x, p.y, "#ffe15b", 24);
         this.powerUntil = 0;
         this.abilities.magnetUntil = 0;
@@ -265,6 +353,7 @@ export class Game extends GameComponent {
         this.abilities.pendingJumpUntil = 0;
         this.abilities.pelletTrails = [];
         this.changeState(this.lives > 0 ? "dying" : "gameover");
+        this.audio.play("hurt");
         this.ui.announce(
           this.lives > 0 ? "announce.lives" : "announce.gameover",
           { lives: this.lives, score: this.i18n.formatScore(this.score) },
@@ -275,7 +364,10 @@ export class Game extends GameComponent {
   }
 
   update(dt) {
-    // Bu korumalar bütün sistemlerin oyun içi sürelerini birlikte dondurur.
+    // Sunum geçişi dünyayı ilerletmez; tüm duraklatmalar süreleri birlikte dondurur.
+    const inTransition = this.state === "transition";
+    this.arcade.update(dt);
+    if (inTransition) return;
     if (this.state === "cutscene") {
       this.cutscenes.advanceCutscene(dt);
       return;
@@ -290,7 +382,15 @@ export class Game extends GameComponent {
     }
     if (this.state !== "playing") return;
     this.gameTime += dt;
+    this.challenges.update();
+    if (this.state !== "playing") return;
     this.player.update(dt);
+    this.renderer.playerAnimation.update(
+      dt,
+      this.movement.position(this.player.entity),
+      this.player.entity,
+      this.abilities.jump,
+    );
     this.abilities.attractPellets();
     if (this.state !== "playing") return;
     this.ghosts.update(dt);
@@ -300,7 +400,13 @@ export class Game extends GameComponent {
   }
 
   resumeGameplay() {
-    this.changeState(this.cutscenes.current ? "cutscene" : "playing");
+    this.changeState(
+      this.arcade.transition
+        ? "transition"
+        : this.cutscenes.current
+          ? "cutscene"
+          : "playing",
+    );
     this.audio.resumeAudio();
   }
 

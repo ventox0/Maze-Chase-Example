@@ -36,10 +36,10 @@ export class MazeMap extends GameComponent {
     };
   }
 
-  createLevelMap(number) {
-    if (number <= 1) return BASE_MAP.map((row) => row.slice());
-    const random = this.mapRandom(number),
-      style = this.mapStyle(number);
+  createLevelMap(number, generation = null) {
+    if (number <= 1 && !generation) return BASE_MAP.map((row) => row.slice());
+    const random = this.mapRandom(generation?.seed ?? number),
+      style = this.mapStyle(generation?.styleLevel ?? number);
     const grid = Array.from({ length: ROWS }, () => Array(COLS).fill(1));
     const directions = [
       [2, 0],
@@ -163,7 +163,11 @@ export class MazeMap extends GameComponent {
     for (let y = 0; y < ROWS; y++)
       for (let x = 0; x < COLS; x++)
         if (this.grid[y][x] === 1) c.fillRect(x * TILE, y * TILE, TILE, TILE);
-    const style = this.mapStyle(this.game.level);
+    const style = this.mapStyle(
+      this.game.challenges.active
+        ? this.game.challenges.current.styleLevel
+        : this.game.level,
+    );
     c.strokeStyle = style.color;
     c.lineWidth = 1.5;
     c.lineJoin = "round";
@@ -238,11 +242,19 @@ export class MazeMap extends GameComponent {
       return;
     }
     if (value !== 2 && value !== 3) return;
+    if (!this.game.challenges.beforePellet(value)) return;
     this.grid[row][col] = 0;
     this.pellets--;
     this.game.addScore(value === 3 ? 50 : 10);
+    this.game.missions.record(value === 3 ? "powerPellets" : "smallPellets");
+    if (magnetic && value === 2) this.game.missions.record("magnetPellets");
     if (value === 3) {
-      this.game.powerUntil = this.game.gameTime + POWER_DURATION;
+      this.game.powerUntil =
+        this.game.gameTime +
+        (this.game.challenges.active
+          ? this.game.challenges.current.powerDuration
+          : POWER_DURATION);
+      this.game.arcade.beginPower();
       this.game.ghosts.entities.forEach((g) => {
         g.wallPlan = null;
         g.wallHop = null;
@@ -250,16 +262,16 @@ export class MazeMap extends GameComponent {
       });
       const p = this.game.movement.position(this.game.player.entity);
       this.game.effects.burst(p.x, p.y, "#ffe15b", 18);
-      this.game.audio.tone(660, 0.22, "sine", 0.06);
+      this.game.audio.play("power");
       this.game.ui.announce("announce.power");
     } else if (!magnetic) {
-      this.game.audio.tone(this.pellets % 2 ? 440 : 520, 0.035);
+      this.game.audio.play("pellet");
     }
     if (this.pellets === 0) this.beginRoundBonus();
   }
 
   beginRoundBonus() {
-    if (this.phase !== "maze") return;
+    if (this.phase !== "maze" || !this.game.challenges.beforeBonus()) return;
     this.phase = "bonus";
     this.game.ghosts.entities = [];
     this.game.powerUntil = 0;
@@ -267,7 +279,7 @@ export class MazeMap extends GameComponent {
     const x = (LIFE_PELLET.col + 0.5) * TILE,
       y = (LIFE_PELLET.row + 0.5) * TILE;
     this.game.effects.burst(x, y, "#80e8b2", 24);
-    this.game.audio.tone(660, 0.3, "sine");
+    this.game.audio.play("bonus");
     this.game.ui.announce("announce.bonus");
     this.game.ui.updateHUD();
   }
@@ -289,8 +301,9 @@ export class MazeMap extends GameComponent {
     }
     const p = this.game.movement.position(this.game.player.entity);
     this.game.effects.burst(p.x, p.y, "#80e8b2", 24);
-    this.game.audio.tone(880, 0.4);
+
     this.game.changeState("victory");
+    this.game.audio.play("victory");
     this.game.ui.announce("announce.victory", { reward: this.bonusReward });
   }
 }

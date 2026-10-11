@@ -1,4 +1,4 @@
-import { $, canvas, loadoutDialog, motionPreference } from "../core/dom.js";
+import { $, canvas, loadoutDialog } from "../core/dom.js";
 import { GameComponent } from "../core/GameComponent.js";
 import { GridActor } from "../core/GridActor.js";
 import { ABILITIES, JUMP_DURATION } from "../data/abilities.js";
@@ -14,6 +14,10 @@ import {
   WIDTH,
 } from "../data/config.js";
 import { GHOSTS } from "../data/ghosts.js";
+import {
+  CUTSCENE_DURATION,
+  REDUCED_CUTSCENE_DURATION,
+} from "../rendering/animation.js";
 
 // Kayıtlar yalnızca bu tarayıcıda tutulur. İki yuva birbirini ezmez.
 export class SaveManager extends GameComponent {
@@ -105,10 +109,14 @@ export class SaveManager extends GameComponent {
 
   canSave() {
     return (
+      !this.game.challenges.active &&
+      !this.game.missionMenu.dialog.open &&
       ["playing", "paused", "cutscene", "victory"].includes(this.game.state) &&
       !loadoutDialog.open &&
       !this.game.levels.dialog.open &&
-      !this.game.shop.dialog.open
+      !this.game.shop.dialog.open &&
+      !this.game.settings.dialog.open &&
+      !this.game.arcade.transition
     );
   }
 
@@ -155,8 +163,11 @@ export class SaveManager extends GameComponent {
         lives: game.lives,
         newRecord: game.newRecord,
         runId: game.runId,
+        missionCursor: { ...game.missions.cursor },
         gameTime: fresh ? 0 : game.gameTime,
         powerUntil: fresh ? 0 : game.powerUntil,
+        combo:
+          fresh || game.gameTime >= game.powerUntil ? 0 : game.arcade.combo,
         invulnerableUntil: fresh ? 2 : game.invulnerableUntil,
         map: fresh ? game.maze.createLevelMap(level) : game.maze.grid,
         phase: fresh ? "maze" : game.maze.phase,
@@ -239,6 +250,16 @@ export class SaveManager extends GameComponent {
       )
         return false;
       const d = record.data;
+      if (
+        d?.combo !== undefined &&
+        (!Number.isInteger(d.combo) || d.combo < 0 || d.combo > MAX_GHOSTS)
+      )
+        return false;
+      if (
+        d?.missionCursor !== undefined &&
+        !this.game.missions.validCursor(d.missionCursor)
+      )
+        return false;
       if (d?.runId !== undefined && !this.game.wallet.validRunId(d.runId))
         return false;
       if (
@@ -368,7 +389,9 @@ export class SaveManager extends GameComponent {
         )
           return false;
         if (
-          ![0.65, 1.3].includes(c.duration) ||
+          ![REDUCED_CUTSCENE_DURATION, 1.3, CUTSCENE_DURATION].includes(
+            c.duration,
+          ) ||
           !this.number(c.elapsed) ||
           c.elapsed > c.duration ||
           typeof c.reduced !== "boolean" ||
@@ -413,6 +436,7 @@ export class SaveManager extends GameComponent {
   }
   checkpoint() {
     if (
+      !this.game.challenges.active &&
       this.autoEnabled &&
       this.game.level % 5 === 0 &&
       this.game.maze.phase === "complete"
@@ -433,7 +457,15 @@ export class SaveManager extends GameComponent {
       game = this.game;
     loadoutDialog.close();
     game.levels.dialog.close();
+    game.challenges.leave();
+    game.menuMode = "campaign";
+    game.arcade.reset();
     game.runId = d.runId || "legacy-" + record.savedAt;
+    game.wallet.refresh();
+    const legacyFence = d.missionCursor
+      ? null
+      : Math.max(d.score, game.wallet.profile.runs[game.runId] || 0);
+    game.missions.beginRun(d.missionCursor || null, legacyFence);
     game.wallet.remember(game.runId, d.score);
     game.level = d.level;
     game.score = d.score;
@@ -441,6 +473,7 @@ export class SaveManager extends GameComponent {
     game.newRecord = d.newRecord;
     game.gameTime = d.gameTime;
     game.powerUntil = d.powerUntil;
+    game.arcade.combo = d.gameTime < d.powerUntil ? d.combo || 0 : 0;
     game.invulnerableUntil = d.invulnerableUntil;
     game.maze.grid = d.map;
     game.maze.phase = d.phase;
@@ -455,6 +488,7 @@ export class SaveManager extends GameComponent {
       moving: d.player.moving,
       next: d.player.next,
     };
+    game.renderer.playerAnimation.reset();
     game.ghosts.entities = d.ghosts.map((saved) => {
       const ghost = { ...GHOSTS.find((g) => g.id === saved.id) };
       for (const key of this.ghostKeys) ghost[key] = saved[key];
@@ -474,9 +508,11 @@ export class SaveManager extends GameComponent {
         name: definition.name,
         color: definition.color,
       };
-      if (motionPreference?.matches && !d.cutscene.reduced) {
-        d.cutscene.elapsed = (d.cutscene.elapsed / d.cutscene.duration) * 0.65;
-        d.cutscene.duration = 0.65;
+      if (game.settings.reduced && !d.cutscene.reduced) {
+        d.cutscene.elapsed =
+          (d.cutscene.elapsed / d.cutscene.duration) *
+          REDUCED_CUTSCENE_DURATION;
+        d.cutscene.duration = REDUCED_CUTSCENE_DURATION;
         d.cutscene.reduced = true;
       }
     }
@@ -510,7 +546,10 @@ export class SaveManager extends GameComponent {
       this.feedbackKey === "save.hint" && !this.autoEnabled
         ? "save.manualHint"
         : this.feedbackKey;
-    $("save-feedback").textContent = this.game.i18n.t(key, this.feedbackValues);
+    $("save-feedback").textContent = this.game.i18n.t(
+      this.game.challenges.active ? "challenge.saveNote" : key,
+      this.feedbackValues,
+    );
     $("save-feedback").classList.toggle(
       "save-error",
       ["save.error", "save.invalid"].includes(this.feedbackKey),

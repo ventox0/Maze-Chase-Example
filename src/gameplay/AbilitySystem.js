@@ -98,16 +98,31 @@ export class AbilitySystem extends GameComponent {
       ) + " ";
     const upcoming =
       this.loadoutNext === "next" ? this.game.level + 1 : this.startLevel;
-    $("loadout-enemies").textContent = this.game.i18n.t("ghostLoadout", {
-      level: upcoming,
-      names: this.game.ghosts
-        .levelGhosts(upcoming)
-        .map((g) => g.name)
-        .join(" · "),
-    });
-    $("loadout-map").textContent = this.game.i18n.t("map.preview", {
-      name: this.game.i18n.t("map." + this.game.maze.mapStyle(upcoming).id),
-    });
+    $("loadout-enemies").textContent = this.game.i18n.t(
+      this.loadoutNext === "challenge"
+        ? "challenge.loadoutGhosts"
+        : "ghostLoadout",
+      {
+        level: upcoming,
+        names: this.game.ghosts
+          .levelGhosts(upcoming)
+          .map((g) => g.name)
+          .join(" · "),
+      },
+    );
+    $("loadout-map").textContent = this.game.i18n.t(
+      this.loadoutNext === "challenge" ? "challenge.mapPreview" : "map.preview",
+      {
+        name: this.game.i18n.t(
+          "map." +
+            this.game.maze.mapStyle(
+              this.loadoutNext === "challenge"
+                ? this.game.challengeMenu.pending.styleLevel
+                : upcoming,
+            ).id,
+        ),
+      },
+    );
   }
 
   confirmLoadout() {
@@ -118,18 +133,25 @@ export class AbilitySystem extends GameComponent {
       return;
     this.loadout = { ...this.draftLoadout };
     loadoutDialog.close();
-    if (this.loadoutNext === "next") this.game.nextLevel();
+    if (this.loadoutNext === "challenge")
+      this.game.challenges.start(this.game.challengeMenu.pending);
+    else if (this.loadoutNext === "next") this.game.nextLevel();
     else this.game.startGame(this.startLevel);
     canvas.focus({ preventScroll: true });
   }
 
   cancelLoadout() {
     loadoutDialog.close();
-    if (this.fromLevelMenu) this.game.levels.open();
+    if (this.loadoutNext === "challenge") this.game.challengeMenu.open(true);
+    else if (this.fromLevelMenu) this.game.levels.open();
   }
 
   useAbility(slot) {
     if (this.game.state !== "playing" || loadoutDialog.open) return;
+    if (!this.game.challenges.skillsAllowed()) {
+      this.game.ui.announce(this.game.challenges.skillBlockKey());
+      return;
+    }
     ({
       jump: this.useJump,
       magnet: this.useMagnet,
@@ -139,33 +161,40 @@ export class AbilitySystem extends GameComponent {
   }
 
   useBoost() {
+    if (!this.game.challenges.skillsAllowed()) return false;
     if (this.game.state !== "playing" || this.game.gameTime < this.boostReadyAt)
       return;
     this.game.audio.resumeAudio();
+    this.game.challenges.recordSkill();
+    this.game.missions.record("skill-boost");
     this.boostUntil = this.game.gameTime + BOOST_DURATION;
     this.boostReadyAt = this.game.gameTime + BOOST_COOLDOWN;
     const p = this.game.movement.position(this.game.player.entity);
     this.game.effects.burst(p.x, p.y, "#ffa563", 18);
-    this.game.audio.tone(880, 0.18);
+    this.game.audio.play("boost");
     this.game.ui.announce("announce.boost");
   }
 
   useShield() {
+    if (!this.game.challenges.skillsAllowed()) return false;
     if (
       this.game.state !== "playing" ||
       this.game.gameTime < this.shieldReadyAt
     )
       return;
     this.game.audio.resumeAudio();
+    this.game.challenges.recordSkill();
+    this.game.missions.record("skill-shield");
     this.shieldUntil = this.game.gameTime + SHIELD_DURATION;
     this.shieldReadyAt = this.game.gameTime + SHIELD_COOLDOWN;
     const p = this.game.movement.position(this.game.player.entity);
     this.game.effects.burst(p.x, p.y, "#81c9ff", 18);
-    this.game.audio.tone(550, 0.25, "sine");
+    this.game.audio.play("shield");
     this.game.ui.announce("announce.shield");
   }
 
   useJump() {
+    if (!this.game.challenges.skillsAllowed()) return false;
     if (
       this.game.state !== "playing" ||
       this.jump ||
@@ -181,6 +210,16 @@ export class AbilitySystem extends GameComponent {
   }
 
   attemptJump() {
+    if (!this.game.challenges.skillsAllowed()) {
+      this.pendingJumpUntil = 0;
+      return false;
+    }
+    if (
+      this.game.state !== "playing" ||
+      this.jump ||
+      this.game.gameTime < this.jumpReadyAt
+    )
+      return false;
     this.pendingJumpUntil = 0;
     const dir = this.game.player.entity.next,
       d = DIRS[dir];
@@ -204,6 +243,8 @@ export class AbilitySystem extends GameComponent {
       return false;
     }
     const from = this.game.movement.position(this.game.player.entity);
+    this.game.challenges.recordSkill();
+    this.game.missions.record("skill-jump");
     this.jump = {
       from,
       to: { x: (col + 0.5) * TILE, y: (row + 0.5) * TILE },
@@ -216,7 +257,7 @@ export class AbilitySystem extends GameComponent {
     this.game.player.entity.moving = true;
     this.jumpReadyAt = this.game.gameTime + JUMP_COOLDOWN;
     this.game.effects.burst(from.x, from.y, "#a28bff", 14);
-    this.game.audio.tone(740, 0.18, "sine");
+    this.game.audio.play("jump");
     this.game.ui.announce("announce.jump");
     return true;
   }
@@ -238,17 +279,20 @@ export class AbilitySystem extends GameComponent {
   }
 
   useMagnet() {
+    if (!this.game.challenges.skillsAllowed()) return false;
     if (
       this.game.state !== "playing" ||
       this.game.gameTime < this.magnetReadyAt
     )
       return;
     this.game.audio.resumeAudio();
+    this.game.challenges.recordSkill();
+    this.game.missions.record("skill-magnet");
     this.magnetUntil = this.game.gameTime + MAGNET_DURATION;
     this.magnetReadyAt = this.game.gameTime + MAGNET_COOLDOWN;
     const p = this.game.movement.position(this.game.player.entity);
     this.game.effects.burst(p.x, p.y, "#65dcca", 18);
-    this.game.audio.tone(330, 0.25, "sine");
+    this.game.audio.play("magnet");
     this.game.ui.announce("announce.magnet");
     this.attractPellets();
   }
