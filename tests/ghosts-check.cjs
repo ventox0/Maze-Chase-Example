@@ -12,12 +12,12 @@ const { fileURLToPath } = require("node:url");
     console.log("PASS " + name);
     count++;
   }
-  check("başlatma / 3 can / dört köşe güç yemi", () => {
+  check("başlatma / 3 can / beş dağıtılmış güç yemi", () => {
     t.startGame();
     let s = t.get();
     assert.equal(s.state, "playing");
     assert.equal(s.lives, 3);
-    assert.equal(s.map.flat().filter((v) => v === 3).length, 4);
+    assert.equal(s.map.flat().filter((v) => v === 3).length, 5);
     assert.equal(s.pellets, 208);
   });
   check("duvara çarpınca durma", () => {
@@ -1654,7 +1654,7 @@ const { fileURLToPath } = require("node:url");
     return seen;
   }
   check(
-    "ilk 1000 bölüm: farklı labirent, tüm yollar bağlı, sınırlar kapalı, dört köşe güç yemi",
+    "ilk 1000 bölüm: farklı labirent, tüm yollar bağlı, sınırlar kapalı, beş rastgele güç yemi",
     () => {
       const fingerprints = new Set();
       for (let level = 1; level <= 1000; level++) {
@@ -1673,14 +1673,7 @@ const { fileURLToPath } = require("node:url");
                 "Unreachable tile at level " + level,
               );
           }
-        assert.equal(grid.flat().filter((v) => v === 3).length, 4);
-        for (const [x, y] of [
-          [1, 1],
-          [19, 1],
-          [1, 21],
-          [19, 21],
-        ])
-          assert.equal(grid[y][x], 3);
+        assert.equal(grid.flat().filter((v) => v === 3).length, 5);
         for (const [x, y] of [
           [10, 17],
           [9, 9],
@@ -1709,8 +1702,9 @@ const { fileURLToPath } = require("node:url");
         const a = maps.createLevelMap(level),
           b = maps.createLevelMap(level);
         assert.equal(JSON.stringify(a), JSON.stringify(b));
+        const originalCell = b[1][1];
         a[1][1] = 0;
-        assert.equal(b[1][1], 3);
+        assert.equal(b[1][1], originalCell);
         assert.equal(JSON.stringify(maps.BASE_MAP), base);
       }
     },
@@ -1763,7 +1757,10 @@ const { fileURLToPath } = require("node:url");
       t.nextLevel();
       assert.notEqual(JSON.stringify(t.get().map), geometry);
       t.startGame();
-      assert.equal(JSON.stringify(t.get().map), JSON.stringify(maps.BASE_MAP));
+      assert.deepEqual(
+        t.get().map.map((r) => r.map((c) => (c === 1 ? 1 : 0))),
+        maps.BASE_MAP.map((r) => r.map((c) => (c === 1 ? 1 : 0))),
+      );
     },
   );
   check(
@@ -1784,7 +1781,7 @@ const { fileURLToPath } = require("node:url");
           Object.assign(t.get().player, { col, row, progress: 0 });
           t.eatPellet();
         }
-        assert.equal(t.get().score, (foods.length - 4) * 10 + 4 * 50);
+        assert.equal(t.get().score, (foods.length - 5) * 10 + 5 * 50);
         assert.equal(t.get().pellets, 0);
         assert.equal(t.get().ghosts.length, 0);
         assert.equal(t.get().map[11][10], 4);
@@ -1891,8 +1888,14 @@ const { fileURLToPath } = require("node:url");
       assert.equal(game.lives, 3);
       assert.equal(game.score, 0);
       assert.equal(
-        JSON.stringify(game.maze.grid),
-        JSON.stringify(game.maze.createLevelMap(17)),
+        JSON.stringify(
+          game.maze.grid.map((r) => r.map((c) => (c === 1 ? 1 : 0))),
+        ),
+        JSON.stringify(
+          game.maze
+            .createLevelMap(17)
+            .map((r) => r.map((c) => (c === 1 ? 1 : 0))),
+        ),
       );
     },
   );

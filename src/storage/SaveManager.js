@@ -1,3 +1,4 @@
+import { POWER_PELLET_COUNT } from "../gameplay/power-pellets.js";
 import { $, canvas, loadoutDialog } from "../core/dom.js";
 import { GameComponent } from "../core/GameComponent.js";
 import { GridActor } from "../core/GridActor.js";
@@ -290,7 +291,8 @@ export class SaveManager extends GameComponent {
         return false;
       const original = this.game.maze.createLevelMap(d.level);
       let foods = 0,
-        life = 0;
+        life = 0,
+        powerPellets = 0;
       for (let y = 0; y < ROWS; y++)
         for (let x = 0; x < COLS; x++) {
           const cell = d.map[y][x],
@@ -309,11 +311,13 @@ export class SaveManager extends GameComponent {
               ? cell !== 1
               : base === 0
                 ? cell !== 0
-                : cell !== 0 && cell !== base
+                : cell !== 0 && cell !== 2 && cell !== 3
           )
             return false;
           if (cell === 2 || cell === 3) foods++;
+          if (cell === 3) powerPellets++;
         }
+      if (powerPellets > POWER_PELLET_COUNT) return false;
       if (d.phase === "complete") {
         if (
           record.kind !== "completion" ||

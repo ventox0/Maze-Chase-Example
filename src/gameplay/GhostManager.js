@@ -1,12 +1,5 @@
 import { GameComponent } from "../core/GameComponent.js";
-import {
-  COLS,
-  DIRS,
-  MAX_GHOSTS,
-  OPPOSITE,
-  ROWS,
-  TILE,
-} from "../data/config.js";
+import { DIRS, MAX_GHOSTS, OPPOSITE, TILE } from "../data/config.js";
 import { GHOSTS } from "../data/ghosts.js";
 
 // Bölüm kadrosu, kovalamaca ve hayaletlerin özel yetenekleri.
@@ -43,6 +36,7 @@ export class GhostManager extends GameComponent {
   }
 
   chooseGhostDirection(ghost) {
+    const { cols, rows } = this.game.movement.dimensions();
     // Hücre merkezine ulaşınca kontrol edilir; FPS hizası yeteneği kaçırmaz.
     if (this.updateGhostSkill(ghost, 0)) return null;
     let options = Object.keys(DIRS).filter((dir) =>
@@ -86,11 +80,11 @@ export class GhostManager extends GameComponent {
           ghost.col
         ] < 5
       ) {
-        target = { col: 1, row: ROWS - 2 };
+        target = { col: 1, row: rows - 2 };
       } else if (ghost.id === "dozer") {
         let best = Infinity;
-        for (let row = 0; row < ROWS; row++)
-          for (let col = 0; col < COLS; col++)
+        for (let row = 0; row < rows; row++)
+          for (let col = 0; col < cols; col++)
             if (this.game.maze.grid[row][col] === 3) {
               const distance =
                 Math.abs(this.game.player.entity.col - col) +

@@ -61,27 +61,11 @@ export function generateChallenge(seed, difficulty = "normal") {
   };
 }
 
-// Köşedeki güç yemleri geçişi kapatmamalı: iki komşuyu iç köşeden birleştir.
-// Böylece güç yemlerini almadan bütün küçük yemlere ulaşmak her tohumda mümkün.
+// Ortak üretici güç yemlerini yolları kapatmadan dağıtır; en sona bırakma kuralı
+// haritayı değiştirmez. Güç yemsiz kuralı beşini de küçük yeme dönüştürür.
 export function applyChallengeRule(grid, rule) {
-  if (rule === "noPower") {
+  if (rule === "noPower")
     for (const row of grid)
       for (let x = 0; x < row.length; x++) if (row[x] === 3) row[x] = 2;
-  } else if (rule === "powerLast") {
-    const bottom = grid.length - 2,
-      right = grid[0].length - 2;
-    for (const [x, y, dx, dy] of [
-      [1, 1, 1, 1],
-      [right, 1, -1, 1],
-      [1, bottom, 1, -1],
-      [right, bottom, -1, -1],
-    ])
-      for (const [cx, cy] of [
-        [x + dx, y],
-        [x, y + dy],
-        [x + dx, y + dy],
-      ])
-        grid[cy][cx] = 2;
-  }
   return grid;
 }

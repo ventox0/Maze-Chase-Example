@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { LanService, lanUrls } from "../server/LanService.js";
 import { readFile, stat } from "node:fs/promises";
 import { resolve, relative, basename, extname, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -16,9 +17,17 @@ const MIME = {
 };
 
 // Oyun derleme gerektirmez; bu sunucu ESM ve görselleri HTTP ile sunar.
-export function createDevServer(root = PROJECT_ROOT) {
+export function createDevServer(root = PROJECT_ROOT, { lan = false } = {}) {
   const projectRoot = resolve(root);
-  return createServer(async (req, res) => {
+  let lanService;
+  const server = createServer(async (req, res) => {
+    const url = new URL(req.url, "http://localhost");
+    if (lanService && (await lanService.handle(req, res, url))) return;
+    if (url.pathname === "/api/lan/info" && req.method === "GET") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ enabled: false, urls: [], maxPlayers: 4 }));
+      return;
+    }
     const sendError = (status, message) => {
       res.writeHead(status, { "Content-Type": "text/plain; charset=utf-8" });
       res.end(req.method === "HEAD" ? undefined : message);
@@ -69,6 +78,9 @@ export function createDevServer(root = PROJECT_ROOT) {
       );
     }
   });
+  if (lan) lanService = new LanService(server);
+  server.lanService = lanService;
+  return server;
 }
 
 if (
@@ -76,12 +88,18 @@ if (
   import.meta.url === pathToFileURL(resolve(process.argv[1])).href
 ) {
   const port = Number(process.env.PORT || 8765);
-  const server = createDevServer();
+  const lan = process.argv.includes("--lan");
+  const server = createDevServer(PROJECT_ROOT, { lan });
   server.on("error", (error) => {
     console.error(`Sunucu başlatılamadı: ${error.message}`);
     process.exitCode = 1;
   });
-  server.listen(port, "127.0.0.1", () => {
-    console.log(`Maze Chaser hazır: http://127.0.0.1:${port}`);
+  server.listen(port, lan ? "0.0.0.0" : "127.0.0.1", () => {
+    console.log(
+      `Maze Chaser hazır: http://127.0.0.1:${port}${lan ? "/lan.html" : ""}`,
+    );
+    if (lan)
+      for (const url of lanUrls(port))
+        console.log(`LAN katılım adresi: ${url}`);
   });
 }

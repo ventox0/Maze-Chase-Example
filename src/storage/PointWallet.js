@@ -81,6 +81,23 @@ export class PointWallet extends GameComponent {
           p.missionRewards.some((id) => !MISSION_BY_ID.has(id)))
       )
         return false;
+      if (p.lanRewardCutoff !== undefined && !this.integer(p.lanRewardCutoff))
+        return false;
+      if (
+        p.lanRewards !== undefined &&
+        (!p.lanRewards ||
+          typeof p.lanRewards !== "object" ||
+          Array.isArray(p.lanRewards) ||
+          Object.keys(p.lanRewards).length > 512 ||
+          !Object.entries(p.lanRewards).every(
+            ([id, record]) =>
+              this.validLanRewardId(id) &&
+              record &&
+              this.integer(record.points) &&
+              this.integer(record.startedAt),
+          ))
+      )
+        return false;
       if (
         !p.runs ||
         typeof p.runs !== "object" ||
@@ -95,13 +112,63 @@ export class PointWallet extends GameComponent {
       return false;
     }
   }
+  validLanRewardId(id) {
+    return typeof id === "string" && /^lan-[a-zA-Z0-9-]{6,100}$/.test(id);
+  }
+  // Makbuzdaki toplam hak edişin yalnızca henüz ödenmemiş farkı eklenir.
+  // Bakiye ve makbuz aynı yazıda saklanır; yeniden bağlanma tekrar ödeme yapmaz.
+  claimLanReward(receipt) {
+    if (
+      !receipt ||
+      !this.validLanRewardId(receipt.id) ||
+      !this.integer(receipt.points) ||
+      !this.integer(receipt.startedAt)
+    )
+      return { status: "invalid", amount: 0 };
+    if (this.storageUnavailable) this.load();
+    else this.refresh();
+    const next = this.clone(),
+      previous = next.lanRewards?.[receipt.id];
+    if (!previous && receipt.startedAt <= (next.lanRewardCutoff || 0))
+      return { status: "expired", amount: 0 };
+    if (previous && previous.startedAt !== receipt.startedAt)
+      return { status: "invalid", amount: 0 };
+    const amount = Math.max(0, receipt.points - (previous?.points || 0));
+    if (!amount) return { status: "already", amount: 0 };
+    if (
+      !this.integer(next.totalEarned + amount) ||
+      !this.integer(next.balance + amount)
+    )
+      return { status: "invalid", amount: 0 };
+    next.lanRewards ||= {};
+    next.lanRewards[receipt.id] = {
+      points: receipt.points,
+      startedAt: receipt.startedAt,
+    };
+    next.totalEarned += amount;
+    next.balance += amount;
+    const entries = Object.entries(next.lanRewards).sort(
+      (a, b) => a[1].startedAt - b[1].startedAt,
+    );
+    while (entries.length > 512) {
+      const [id, record] = entries.shift();
+      delete next.lanRewards[id];
+      next.lanRewardCutoff = Math.max(
+        next.lanRewardCutoff || 0,
+        record.startedAt,
+      );
+    }
+    return this.persist(next, true)
+      ? { status: "credited", amount }
+      : { status: "storageError", amount: 0 };
+  }
   clone() {
     return JSON.parse(JSON.stringify(this.profile));
   }
   load() {
     try {
       const raw = localStorage.getItem(this.key),
-        p = raw && raw.length < 64000 ? JSON.parse(raw) : null;
+        p = raw && raw.length < 262144 ? JSON.parse(raw) : null;
       this.profile = this.validate(p) ? p : this.empty();
     } catch (_) {
       this.profile = this.empty();
@@ -112,7 +179,7 @@ export class PointWallet extends GameComponent {
     if (this.storageUnavailable) return;
     try {
       const raw = localStorage.getItem(this.key),
-        p = raw && raw.length < 64000 ? JSON.parse(raw) : null;
+        p = raw && raw.length < 262144 ? JSON.parse(raw) : null;
       if (this.validate(p)) this.profile = p;
     } catch (_) {}
   }

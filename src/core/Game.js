@@ -1,3 +1,4 @@
+import { randomPowerSeed } from "../gameplay/power-pellets.js";
 import { AudioManager } from "../audio/AudioManager.js";
 import { loadoutDialog } from "./dom.js";
 import { GameComponent } from "./GameComponent.js";
@@ -138,7 +139,7 @@ export class Game extends GameComponent {
     this.maze.bonusRewardKey = "";
     this.maze.grid = this.challenges.active
       ? this.challenges.createMap()
-      : this.maze.createLevelMap(this.level);
+      : this.maze.createLevelMap(this.level, { powerSeed: randomPowerSeed() });
     this.maze.pellets = this.maze.grid
       .flat()
       .filter((cell) => cell === 2 || cell === 3).length;

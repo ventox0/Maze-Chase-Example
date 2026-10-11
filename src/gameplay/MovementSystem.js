@@ -82,9 +82,17 @@ export class MovementSystem extends GameComponent {
     }
   }
 
+  dimensions() {
+    return {
+      rows: this.game.maze.grid?.length || ROWS,
+      cols: this.game.maze.grid?.[0]?.length || COLS,
+    };
+  }
+
   distanceField(target) {
-    const distance = Array.from({ length: ROWS }, () =>
-      Array(COLS).fill(Infinity),
+    const { cols, rows } = this.dimensions();
+    const distance = Array.from({ length: rows }, () =>
+      Array(cols).fill(Infinity),
     );
     const queue = [[target.col, target.row]];
     distance[target.row][target.col] = 0;
@@ -103,13 +111,14 @@ export class MovementSystem extends GameComponent {
   }
 
   nearestRoad(target) {
+    const { cols, rows } = this.dimensions();
     let best = Infinity,
       result = {
         col: this.game.player.entity.col,
         row: this.game.player.entity.row,
       };
-    for (let row = 0; row < ROWS; row++)
-      for (let col = 0; col < COLS; col++)
+    for (let row = 0; row < rows; row++)
+      for (let col = 0; col < cols; col++)
         if (this.game.maze.walkable(col, row)) {
           const d = Math.abs(col - target.col) + Math.abs(row - target.row);
           if (d < best) {

@@ -91,6 +91,17 @@ Object.assign(globalThis, {
   requestAnimationFrame: sandbox.requestAnimationFrame,
 });
 
+// Mekanik testlerinde entropi sabittir; farklı güç yemi tohumları ayrı testlerde sınanır.
+Object.defineProperty(globalThis, "crypto", {
+  configurable: true,
+  value: {
+    getRandomValues(array) {
+      array.fill(15);
+      return array;
+    },
+  },
+});
+
 const { Game } = await import("../../src/core/Game.js");
 const { GameComponent } = await import("../../src/core/GameComponent.js");
 const { TRANSLATIONS } = await import("../../src/i18n/messages.js");

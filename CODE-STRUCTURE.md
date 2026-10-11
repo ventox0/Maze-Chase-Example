@@ -97,7 +97,7 @@ Cüzdan `maze-chaser-wallet-v1` anahtarını kullanır. Her oyun koşusunun kiml
 
 ## Challenge oluşturma ve kurallar
 
-`src/data/challenges.js` tohumdan deterministik kural/zorluk/kadro seviyesi üretir. `MazeMap.createLevelMap(level, {seed, styleLevel})` mevcut labirent üreticisini rastgele tohumla kullanır; yalnızca bölüm numarası verilmesi önceki bölüm haritalarını korur. `applyChallengeRule` güç yemsiz dönüşümü ve köşe yemlerine dokunmadan dolaşmayı sağlayan bağlantıları uygular; menü önizlemesi ve oyun aynı işlemi kullanır.
+`src/data/challenges.js` tohumdan deterministik kural/zorluk/kadro seviyesi üretir. `MazeMap.createLevelMap(level, {seed, styleLevel})` mevcut labirent üreticisini rastgele tohumla kullanır; yalnızca bölüm numarası verilmesi labirent geometrisini korur; güç yemi konumları seçilen tohuma göre üretilir. `applyChallengeRule` güç yemsiz dönüşümü uygular. Ortak güç yemi dağıtımı küçük yemlere giden yolları kapatmaz; menü önizlemesi ve oyun aynı tohumla aynı yerleşimi kullanır.
 
 `ChallengeMode` tek denemelik koşuyu, kural ihlalini, süre sınırını, bonusu ve ayrı rekoru yönetir. `ChallengeSelection` önizleme, zorluk, yeniden üretme ve aynı denemeyi tekrarlama akışını yönetir. `Game.mode` etkin oyunu, `menuMode` henüz başlamamış menü tercihini ifade eder. Challenge'da kayıt kapalıdır; ortak cüzdan puan kazanmaya devam eder. Kampanyaya dönüş ve kayıt yükleme, bölüm rekorunu geri getirir. Yeni arayüz `styles/challenge.css` içindedir.
 
@@ -110,3 +110,41 @@ Cüzdan `maze-chaser-wallet-v1` anahtarını kullanır. Her oyun koşusunun kiml
 `SaveManager` isteğe bağlı `missionCursor` alanını doğrular ve geri yükler; eski kayıtlar bu alan olmadan geçerlidir. Koşu geçmişi en fazla 128 kayıt tutar; etkin ve iki kayıt yuvasındaki koşular budanmaz. Ödül kimliği ve cüzdan ödemesi `PointWallet.claimMission` ile aynı localStorage yazısında saklanır. Görev ödülü `Game.addScore` kullanmaz ve kazanılmış oyun puanı hedefinden çıkarılır. Cüzdanın sürümü ve eski verinin geçerliliği korunur.
 
 `MissionMenu` ayrı dialog, filtreler, sayfalar, toplu ödül ve üst çubuk rozeti sunar. Diğer menülerle birlikte açılamaz; oyun, giriş ve ara sahne durumunu kapatınca geri yükler. Görünüm `styles/missions.css` içinde, bütün metinler Türkçe/İngilizce çevirilerde bulunur.
+
+## Alpha LAN
+
+`server/LanWorld.js` yetkili çok oyunculu simülasyondur. İstemciler konum, can veya skor yazamaz; yalnızca yön ve yetenek niyeti gönderir. `MovementSystem`, `GhostManager`, harita/yetenek sabitleri ve saf `map-generation.js` hem LAN hem tek oyunculu tarafından kullanılır. Her hayalet en yakın bağlı, yaşayan oyuncuyu hedefler. Ortak grid yemlerin ve hayalet ödüllerinin iki kez verilmesini engeller. Takım ve kişisel puanlar ayrı tutulur.
+
+`server/LanService.js` oda kodları, dört kişilik limit, oda sahipliği, hazır kontrolü, oturum token'ları ve 30 saniyelik yeniden bağlanma rezervini yönetir. `scripts/dev-server.mjs --lan` HTTP API ve statik dosyaları aynı origin'de servis eder; varsayılan `dev` modu yalnızca loopback'tir. `createDevServer(root, {lan:true})` entegrasyon testlerinde sıfır portla çalışır. Servis kapatılınca yayınlar ve tick zamanlayıcısı temizlenir.
+
+`src/lan/LanClient.js` JSON komutları sıralar, Authorization başlıklı fetch/SSE akışını okur ve bağlantıyı tekrar kurar. Token yalnızca sekmeye ait `sessionStorage` içindedir; katılım URL'sine yazılmaz. Yenilenen sayfa sunucunun son sıra numarasından devam eder. `LanRenderer` 20 Hz snapshot'ları 90 ms çizim tamponunda birleştirir; teleport/respawn geçişlerini karıştırmaz. Sunucu fizik adımları 1/120 saniyeyi geçmez. `PlayerAnimation` yürüyüş sunumunda paylaşılır.
+
+`lan.html`, `styles/lan.css`, `src/lan/LanUI.js` ve `strings.js` ayrı LAN arayüzünü oluşturur. Tek oyunculu `Game` başlatılmaz. `LanRewards` sunucunun kişisel ödül makbuzlarını normal cüzdana aktarır; LAN istemcisi oyun kayıtlarına yazmaz. `tests/lan-check.mjs` iki oyunculu gerçek HTTP yayınlarıyla oda açma, hazır kontrolü, yetkisiz istekler, 4 oyuncu limiti, liderlik devri ve geri bağlanmayı doğrular; iki modun mekaniğini ve 4 oyuncu/8 harita simülasyonunu da çalıştırır.
+
+## Tek oyunculu / LAN görsel eşleşmesi
+
+`src/rendering/ArcadeDrawing.js` iki modun ortak Canvas çizimlerini tutar: birleşen neon duvarlar, yem ve can yemi, oyuncu pozları, hayaletler, korku modu ve yetenek efektleri. `MazeMap` ve `LanRenderer` aynı duvar katmanını üretir. LAN önbelleği yemler değiştiğinde korunur; duvar geometrisi veya renk paleti değiştiğinde yenilenir.
+
+Sunucu snapshot’larında atlayış yolu/ilerlemesi, boost durumu ve hayalet yetenek uyarıları da taşınır. Bu alanlar yalnızca çizim içindir; hareket, süreler ve çarpışmalar sunucuda hesaplanır. LAN oyuncu halkaları ve isimleri ortak çizime eklenir. `tests/lan-rendering-check.mjs` harita, korku ve özel hayalet çizimlerinin iki modda eşleşmesini ve duvar önbelleğini sınar.
+
+## Büyük LAN sahası
+
+`src/data/lan.js` LAN’a özel 41×35 saha, dört oyuncu doğma noktası, merkez can yemi ve 6 hayalet limitini tutar. `src/gameplay/lan-map.js` boyutları ortak deterministik üreticiye verir ve altı farklı hayalet kadrosunu seçer. Dört temel hayalete iki uzman eşlik eder.
+
+`MovementSystem` yol bulma alanlarını ve `GhostManager` harita hedeflerini etkin grid boyutundan okur. Duvar/yem çizimleri de grid boyutunu kullanır; `LanRenderer` Canvas boyutunu gelen haritaya uyarlar. Tek oyunculu harita ve dört hayalet limiti değişmez.
+
+Yakın görünüm yerel Canvas kamerasını iki kat büyütür; yaşayan oyuncuyu takip eder ve saha sınırlarında durur. Dar ekranda varsayılan olarak açıktır. Haritanın tamamını gösterme düğmesi kamera ölçeğini sıfırlar. Kamera sunucuya komut göndermez ve dünya koordinatlarını değiştirmez.
+
+`tests/lan-map-check.mjs` 43 büyük haritanın erişilebilirliğini, altı hayaletin ayrı doğumlarını, uzak bölgelerde AI/yetenekleri ve yeni merkez ödülünü sınar. `tests/lan-rendering-check.mjs` büyük Canvas boyutunu, uzak yemleri ve kamera sınırlarını da doğrular.
+
+## LAN ödülleri ve izleme
+
+`LanWorld.settleRewards()` iş birliğinde bölüm sonundaki takım toplamının %50’sini her oyuncu için hesaplar; pay oyuncu sayısına bölünmez. Puan yarışında maç sonundaki kişisel skorun %50’sini hesaplar. Makbuz kimliği maç UUID’si ve oyuncu kimliğinden oluşur; iş birliğinde aynı makbuzun toplam hak edişi artar. `LanService.snapshot()` yalnızca alıcı oyuncunun makbuzlarını yayınlar. Önceki makbuzlar yeniden maç başlatılırken korunur.
+
+`src/lan/LanRewards.js` makbuzları sekmeler arası Web Lock ve bir işlem kuyruğuyla uygular. `PointWallet.claimLanReward()` ödülün ödenmemiş farkını, bakiye ve makbuzla tek localStorage yazısında saklar. 512 makbuzluk geçmiş budanırken zaman eşiği tutulur; eski bir makbuz yeniden ödül üretmez. Mevcut envanter, giyim ve görev ödülleri korunur. Depolama hatasında makbuz tüketilmez.
+
+`LanUI.renderSpectator()` yaşayan takım arkadaşlarını ayrı bir seçim çubuğunda gösterir. İzleme uyarısı karartma katmanını açmaz. `LanRenderer.camera()` seçili takım arkadaşını takip eder; oyuncu canla geri döndüğünde normal kamera ve kontroller geri gelir.
+
+## Beş rastgele güç yemi
+
+`src/gameplay/power-pellets.js` yerleşimleri dağıtır; güç yemleri çıkarıldığında kalan yolların bağlılığını kontrol ederek en sona bırakma kuralını mümkün kılar. `map-generation.js` geometri tohumundan ayrı bir `powerSeed` kabul eder. Bölüm ve LAN başlangıcı yeni güç yemi tohumu üretir; Challenge kodu deterministik kalır. `SaveManager` geometriyi, boş alanları ve en fazla beş güç yemini doğrular; eski köşe yerleşimlerini de kabul eder.

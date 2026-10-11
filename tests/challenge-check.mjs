@@ -101,11 +101,11 @@ check(
               if (c.rule === "powerLast" && grid[y][x] === 2)
                 assert.ok(
                   avoiding.has(x + "," + y),
-                  `power corner blocks ${seed} ${x},${y}`,
+                  `power pellet blocks ${seed} ${x},${y}`,
                 );
             }
         const power = grid.flat().filter((v) => v === 3).length;
-        assert.equal(power, c.rule === "noPower" ? 0 : 4);
+        assert.equal(power, c.rule === "noPower" ? 0 : 5);
         assert.ok(game.ghosts.levelGhosts(c.level).length <= 4);
       }
     assert.ok(signatures.size > 140);
@@ -128,31 +128,34 @@ check("yeteneksiz koşu Q/E ve doğrudan yetenek yollarını kapatır", () => {
   assert.equal(game.abilities.magnetUntil, 0);
   assert.equal(element("q-button").disabled, true);
   assert.equal(element("e-button").disabled, true);
-  game.maze.collectPellet(1, 1);
+  const row = game.maze.grid.findIndex((r) => r.includes(3));
+  game.maze.collectPellet(game.maze.grid[row].indexOf(3), row);
   assert.ok(game.powerUntil > 0);
 });
 check("erken güç yemi denemeyi bitirir, yem ve skor verilmez", () => {
   start("powerLast");
   const pellets = game.maze.pellets;
-  game.maze.collectPellet(1, 1);
+  const row = game.maze.grid.findIndex((r) => r.includes(3)),
+    col = game.maze.grid[row].indexOf(3);
+  game.maze.collectPellet(col, row);
   assert.equal(game.state, "gameover");
   assert.equal(game.challenges.result.reason, "earlyPower");
   assert.equal(game.score, 0);
-  assert.equal(game.maze.grid[1][1], 3);
+  assert.equal(game.maze.grid[row][col], 3);
   assert.equal(game.maze.pellets, pellets);
 });
-check("tüm küçük yemlerden sonra dört güç yemi toplanabilir", () => {
+check("tüm küçük yemlerden sonra beş güç yemi toplanabilir", () => {
   start("powerLast");
   for (let y = 0; y < ROWS; y++)
     for (let x = 0; x < COLS; x++)
       if (game.maze.grid[y][x] === 2) game.maze.collectPellet(x, y, true);
-  for (const [x, y] of [
-    [1, 1],
-    [COLS - 2, 1],
-    [1, ROWS - 2],
-    [COLS - 2, ROWS - 2],
-  ])
-    game.maze.collectPellet(x, y);
+  const powers = [];
+  game.maze.grid.forEach((r, y) =>
+    r.forEach((v, x) => {
+      if (v === 3) powers.push([x, y]);
+    }),
+  );
+  for (const [x, y] of powers) game.maze.collectPellet(x, y);
   assert.equal(game.state, "playing");
   assert.equal(game.maze.phase, "bonus");
   assert.equal(game.maze.pellets, 0);
@@ -277,7 +280,8 @@ check("yeniden deneme aynı haritayla başlar; iptal geri döner", () => {
 });
 check("kısa güç dört saniyedir; bölüm modunda on saniye korunur", () => {
   start("shortPower");
-  game.maze.collectPellet(1, 1);
+  const row = game.maze.grid.findIndex((r) => r.includes(3));
+  game.maze.collectPellet(game.maze.grid[row].indexOf(3), row);
   assert.equal(game.powerUntil - game.gameTime, 4);
   game.arcade.ghostCaught();
   game.ui.updateHUD();
