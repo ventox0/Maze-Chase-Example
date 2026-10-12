@@ -59,7 +59,7 @@ export default {
   "ability.shield": "Hasar görmezlik",
   "abilityDescription.shield":
     "Hayalet temasında can kaybetme.\n4 sn etki · 18 sn bekleme",
-  meta: "Neon bir labirent, hayaletler ve bir rekor. Kasaba Games arcade oyunu Maze Chaser.",
+  meta: "Neon bir labirent, hayaletler ve bir rekor. Natifex Interactive arcade oyunu Maze Chaser.",
   chooseLanguage: "Oyun dili",
   switchLanguage: "İngilizceye geç",
   "ready.kicker": "BİR REKOR, BİR OYUN UZAKTA",
@@ -83,7 +83,7 @@ export default {
   "victory.description":
     "{level}. bölüm tamam! {reward} Skorun: {score}. Bir sonraki turda tempo biraz artıyor.",
   "victory.action": "Sonraki bölüm",
-  "finished.kicker": "KASABANIN ŞAMPİYONU",
+  "finished.kicker": "NATIFEX ŞAMPİYONU",
   "finished.title": "1.000 Bölüm Tamamlandı!",
   "finished.description":
     "Son labirenti de temizledin! Final skorun: {score}. İstediğin bölümü yeniden oynayabilirsin.",
@@ -144,8 +144,8 @@ export default {
   lifeReward: "+1 CAN",
   pointsReward: "+500 PUAN",
   ghostHQ: "HAYALET ÜSSÜ",
-  "lan.open": "LAN Multiplayer · 2–4 oyuncu",
-  version: "alpha.0.1.0 · LAN GÜNCELLEMESİ",
+  "lan.open": "Multiplayer · 2–4 oyuncu",
+  version: "alpha.0.1.0 · MULTIPLAYER GÜNCELLEMESİ",
   ghostCurrent: "BU BÖLÜMDEKİ HAYALETLER",
   ghostGuide: "8 hayaleti tanı",
   ghostUnlock: "{level}. bölümde açılır",

@@ -1,4 +1,4 @@
-# Maze Chaser · Kasaba Games
+# Maze Chaser · Natifex Interactive
 
 HTML5 Canvas ve Vanilla JavaScript ile yazılmış, Türkçe/İngilizce destekli arcade labirent oyunu. Sürüm: **alpha.0.1.0**. Tek oyunculu oyun 1.000 bölüm, sekiz hayalet türü, Q/E yetenekleri, aksiyon sahneleri, bölüm seçimi, kayıt sistemi, puan dükkânı ve 100 görev içerir. Alpha güncellemesi **2–4 oyunculu LAN iş birliği ve puan yarışı** modlarını ekler. Harici paket veya derleme gerekmez.
 
@@ -22,7 +22,7 @@ Barındıran bilgisayarda **Node.js 20+** olmalı. Proje klasöründe:
 npm run lan
 ```
 
-Sunucu `0.0.0.0:8765` üzerinde açılır; terminal yerel IPv4 katılım adreslerini yazar. Oda sahibi `http://127.0.0.1:8765/lan.html` adresini, arkadaşları terminaldeki `http://192.168.x.x:8765/lan.html` adresini kullanır. Normal oyunun başlangıç menüsündeki **LAN Multiplayer** bağlantısı da bu ekrana gider. Diğer bilgisayarlarda Node.js veya proje dosyaları gerekmez; modern tarayıcı yeterlidir.
+Sunucu `0.0.0.0:8765` üzerinde açılır; terminal yerel IPv4 katılım adreslerini yazar. Yerel ağda oda sahibi `http://127.0.0.1:8765/lan.html` adresini, arkadaşları terminaldeki `http://192.168.x.x:8765/lan.html` adresini kullanır. İnternete açık bir sunucuda herkes aynı yayın adresi üzerinden, farklı ağlardan katılabilir. Normal oyunun başlangıç menüsündeki **Multiplayer** bağlantısı da bu ekrana gider. Diğer bilgisayarlarda Node.js veya proje dosyaları gerekmez; modern tarayıcı yeterlidir.
 
 1. Aynı Wi-Fi/Ethernet ağına bağlanın. Bir bilgisayar sunucuyu çalıştırsın.
 2. Oyuncu adını, iki farklı Q/E yeteneğini ve **İş birliği / Puan yarışı** modunu seçip oda oluşturun.

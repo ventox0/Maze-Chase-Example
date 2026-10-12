@@ -1,5 +1,8 @@
 export const STRINGS = {
   tr: {
+    pageTitle: "Natifex Interactive · Multiplayer",
+    arenaLabel: "Multiplayer oyun alanı",
+    mazeLabel: "Multiplayer labirenti",
     accountInRoom: "Bu hesabın zaten bu odada. Önce mevcut oturumdan ayrıl.",
     createPassword: "Oda şifresi (isteğe bağlı)",
     hideRoom: "Odayı listeden gizle",
@@ -52,7 +55,7 @@ export const STRINGS = {
     reconnectTime: "Oturum için kalan süre",
     retryConnection: "Şimdi yeniden dene",
 
-    eyebrow: "AYNI AĞ. AYNI LABİRENT.",
+    eyebrow: "AYNI OYUN. ORTAK LABİRENT.",
     intro:
       "Arkadaşlarınla iş birliği yap veya puan yarışına gir. 2–4 oyuncu, büyük labirent ve 6 hayalet.",
     checking: "Sunucu kontrol ediliyor…",
@@ -76,11 +79,11 @@ export const STRINGS = {
     next: "Sonraki bölüm",
     rematch: "Yeniden oyna",
     leave: "Odadan ayrıl",
-    how: "LAN nasıl çalışır?",
+    how: "Multiplayer nasıl çalışır?",
     hosting:
-      "Bir bilgisayarda npm run lan çalıştır. Arkadaşların aynı Wi-Fi veya Ethernet ağına bağlansın; aşağıdaki adresi tarayıcılarında açıp oda koduyla katılsınlar.",
+      "Arkadaşlarınla aynı bağlantıyı aç. Biriniz oda oluştursun, diğerleri oda koduyla katılsın. Farklı ağlardan da oynayabilirsiniz.",
     controls:
-      "Oklar / WASD: hareket · Q / E: yetenek. Oyun, sunucuyu çalıştıran bilgisayar açık kaldığı sürece sürer.",
+      "Oklar / WASD: hareket · Q / E: yetenek. Oyun, sunucu açık kaldığı sürece sürer.",
     localOnly:
       "İş birliğinde bölüm sonundaki takım toplamının %50’si her oyuncunun dükkân bakiyesine eklenir. Puan yarışında maç sonundaki kişisel skorunun %50’sini alırsın. Tek oyunculu kayıtların korunur.",
     closeView: "Yakın görünüm",
@@ -103,12 +106,12 @@ export const STRINGS = {
     scores: "Skor tablosu",
     emptyScores: "Oyuncular bağlanınca burada görünecek.",
     solo: "← Tek oyunculu oyuna dön",
-    online: "LAN sunucusu hazır",
+    online: "Multiplayer sunucusu hazır",
     connected: "Odaya bağlı",
     connecting: "Bağlanıyor…",
     reconnecting: "Yeniden bağlanıyor…",
-    offline: "LAN sunucusu kapalı",
-    disabled: "LAN için sunucuyu npm run lan ile başlat.",
+    offline: "Multiplayer sunucusu kapalı",
+    disabled: "Multiplayer sunucusu kullanılamıyor. Oyunu sunucu üzerinden aç.",
     coopDesc:
       "Yemleri birlikte temizleyin. Güç yemi herkesi güçlendirir. Merkez can yemini alınca takım ödül alır ve sonraki bölüme geçer.",
     raceDesc:
@@ -173,6 +176,9 @@ export const STRINGS = {
     loading: "Yükleniyor…",
   },
   en: {
+    pageTitle: "Natifex Interactive · Multiplayer",
+    arenaLabel: "Multiplayer play area",
+    mazeLabel: "Multiplayer maze",
     accountInRoom:
       "This account is already in this room. Leave the existing session first.",
     createPassword: "Room password (optional)",
@@ -226,7 +232,7 @@ export const STRINGS = {
     reconnectTime: "Session time remaining",
     retryConnection: "Retry connection now",
 
-    eyebrow: "SAME NETWORK. SAME MAZE.",
+    eyebrow: "ONE GAME. ONE MAZE.",
     intro:
       "Team up with friends or race for points. 2–4 players, a large maze and 6 ghosts.",
     checking: "Checking server…",
@@ -250,11 +256,11 @@ export const STRINGS = {
     next: "Next level",
     rematch: "Play again",
     leave: "Leave room",
-    how: "How does LAN work?",
+    how: "How does multiplayer work?",
     hosting:
-      "Run npm run lan on one computer. Connect your friends to the same Wi-Fi or Ethernet network. Open the address below in their browsers and join with the room code.",
+      "Open the same link with your friends. One player creates a room; the others join with its code. You can play from different networks.",
     controls:
-      "Arrows / WASD: move · Q / E: abilities. The game runs while the hosting computer stays on.",
+      "Arrows / WASD: move · Q / E: abilities. The game runs while the server is online.",
     localOnly:
       "In co-op, each player receives 50% of the final team total in their shop balance after the level. In score race, you receive 50% of your final personal score after the match. Your solo saves are preserved.",
     closeView: "Close-up view",
@@ -277,12 +283,12 @@ export const STRINGS = {
     scores: "Scoreboard",
     emptyScores: "Connected players will appear here.",
     solo: "← Back to solo play",
-    online: "LAN server ready",
+    online: "Multiplayer server ready",
     connected: "Connected to room",
     connecting: "Connecting…",
     reconnecting: "Reconnecting…",
-    offline: "LAN server offline",
-    disabled: "Start the server with npm run lan to enable LAN.",
+    offline: "Multiplayer server offline",
+    disabled: "Multiplayer server unavailable. Open the game through its server.",
     coopDesc:
       "Clear the maze together. Power pellets empower everyone. Collect the central life pellet for team rewards and the next level.",
     raceDesc:

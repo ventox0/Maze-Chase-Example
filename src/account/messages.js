@@ -2,7 +2,7 @@ export const ACCOUNT_TEXT = {
   tr: {
     account: "Hesabım",
     guest: "Misafir",
-    title: "Kasaba hesabı",
+    title: "Natifex hesabı",
     username: "Kullanıcı adı",
     password: "Şifre",
     login: "Giriş yap",
@@ -41,7 +41,7 @@ export const ACCOUNT_TEXT = {
   en: {
     account: "My account",
     guest: "Guest",
-    title: "Kasaba account",
+    title: "Natifex account",
     username: "Username",
     password: "Password",
     login: "Log in",

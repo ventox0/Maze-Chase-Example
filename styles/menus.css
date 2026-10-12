@@ -165,7 +165,15 @@
     max-width: 530px;
   }
   .topbar {
-    height: 65px;
+    height: auto;
+    min-height: 86px;
+    padding: 12px 0;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .header-tools {
+    flex: 1 0 100%;
+    justify-content: space-between;
   }
   .brand {
     font-size: 11px;

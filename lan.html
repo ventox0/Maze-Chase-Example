@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="theme-color" content="#0b0b17" />
-    <title>Kasaba Games · Alpha LAN</title>
+    <title>Natifex Interactive · Multiplayer</title>
     <link rel="stylesheet" href="./styles/lan.css" />
     <link rel="stylesheet" href="./styles/account.css" />
   </head>
@@ -16,19 +16,19 @@
           alt=""
           width="30"
           height="30"
-        /><span>Kasaba Games</span></a
+        /><span>Natifex Interactive</span></a
       >
       <div class="header-end">
         <button class="quiet" type="button" data-account-open>Hesabım</button>
-        <span class="build">alpha.0.1.0 · LAN</span
+        <span class="build">alpha.0.1.0 · MULTIPLAYER</span
         ><button id="language" class="quiet" type="button">EN</button>
       </div>
     </header>
     <main>
       <section class="intro">
         <div>
-          <p class="eyebrow" data-t="eyebrow">AYNI AĞ. AYNI LABİRENT.</p>
-          <h1>LAN <span>ARCADE.</span></h1>
+          <p class="eyebrow" data-t="eyebrow">AYNI OYUN. ORTAK LABİRENT.</p>
+          <h1>MULTIPLAYER <span>ARCADE.</span></h1>
           <p data-t="intro">
             Arkadaşlarınla iş birliği yap veya puan yarışına gir. 2–4 oyuncu,
             büyük labirent ve 6 hayalet.
@@ -228,16 +228,15 @@
             aria-live="polite"
           ></p>
           <details class="help">
-            <summary data-t="how">LAN nasıl çalışır?</summary>
+            <summary data-t="how">Multiplayer nasıl çalışır?</summary>
             <p data-t="hosting">
-              Bir bilgisayarda npm run lan çalıştır. Arkadaşların aynı Wi-Fi
-              veya Ethernet ağına bağlansın; aşağıdaki adresi tarayıcılarında
-              açıp oda koduyla katılsınlar.
+              Arkadaşlarınla aynı bağlantıyı aç. Biriniz oda oluştursun,
+              diğerleri oda koduyla katılsın. Farklı ağlardan da oynayabilirsiniz.
             </p>
             <div id="addresses"></div>
             <p data-t="controls">
               Oklar / WASD: hareket · Q / E: yetenek. Oyun, sunucuyu çalıştıran
-              bilgisayar açık kaldığı sürece sürer.
+              sunucu açık kaldığı sürece sürer.
             </p>
             <p data-t="localOnly">
               İş birliğinde bölüm sonundaki takım toplamının %50’si her
@@ -246,7 +245,11 @@
             </p>
           </details>
         </aside>
-        <section class="panel arena" aria-label="LAN oyun alanı">
+        <section
+          class="panel arena"
+          data-t-aria="arenaLabel"
+          aria-label="Multiplayer oyun alanı"
+        >
           <div class="arena-header">
             <div>
               <span class="eyebrow" data-t="match">MAÇ DURUMU</span>
@@ -303,7 +306,8 @@
               width="984"
               height="840"
               tabindex="0"
-              aria-label="LAN labirenti"
+              data-t-aria="mazeLabel"
+              aria-label="Multiplayer labirenti"
             ></canvas>
             <div id="arena-message" class="arena-message">
               <strong data-t="welcome">Birlikte bir tur daha.</strong>
@@ -350,7 +354,7 @@
     </main>
     <footer>
       <a href="./index.html" data-t="solo">← Tek oyunculu oyuna dön</a
-      ><span>Kasaba Games · Alpha LAN</span>
+      ><span>Natifex Interactive · Multiplayer</span>
     </footer>
     <script type="module" src="./src/lan/main.js"></script>
   </body>

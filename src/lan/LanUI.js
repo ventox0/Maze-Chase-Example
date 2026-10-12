@@ -85,8 +85,11 @@ export class LanUI {
     this.updateViewButton();
     this.renderWallet();
     document.documentElement.lang = this.language;
+    document.title = this.t("pageTitle");
     for (const node of document.querySelectorAll("[data-t]"))
       node.textContent = this.t(node.dataset.t);
+    for (const node of document.querySelectorAll("[data-t-aria]"))
+      node.setAttribute("aria-label", this.t(node.dataset.tAria));
     $("language").textContent = this.language === "tr" ? "EN" : "TR";
     $("language").setAttribute(
       "aria-label",
