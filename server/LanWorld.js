@@ -337,6 +337,14 @@ export class LanWorld {
       this.event("bonusReady", p);
     }
   }
+  playerSpeed(p) {
+    this.context(p);
+    return (
+      (4.65 + Math.min(this.level - 1, 8) * 0.12) * TILE *
+      (this.gameTime < p.abilities.boostUntil ? BOOST_MULTIPLIER : 1) *
+      (this.ghosts.playerSlowed() ? 0.8 : 1)
+    );
+  }
   updatePlayer(p, dt) {
     this.context(p);
     const a = p.abilities;
@@ -357,11 +365,7 @@ export class LanWorld {
       }
     } else {
       this.collect(p, p.entity.col, p.entity.row);
-      const speed =
-        (4.65 + Math.min(this.level - 1, 8) * 0.12) *
-        TILE *
-        (this.gameTime < a.boostUntil ? BOOST_MULTIPLIER : 1) *
-        (this.ghosts.playerSlowed() ? 0.8 : 1);
+      const speed = this.playerSpeed(p);
       this.movement.move(
         p.entity,
         speed * dt,
@@ -573,6 +577,14 @@ export class LanWorld {
         lives: p.lives,
         dir: p.entity.dir,
         moving: p.entity.moving,
+        // Görsel tahmin için grid hizası; istemci bu konumu sunucuya göndermez.
+        motion: {
+          col: p.entity.col,
+          row: p.entity.row,
+          progress: p.entity.progress,
+          next: p.entity.next,
+          speed: this.playerSpeed(p),
+        },
         ...this.position(p),
         respawning: this.gameTime < p.respawnUntil,
         invulnerable: this.gameTime < p.invulnerableUntil,

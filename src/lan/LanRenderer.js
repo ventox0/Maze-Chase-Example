@@ -1,4 +1,5 @@
 import { LanAppearance } from "./LanAppearance.js";
+import { LanPrediction } from "./LanPrediction.js";
 import { TILE } from "../data/config.js";
 import { createLanMap } from "../gameplay/lan-map.js";
 import { SPRITE_SOURCES, GHOST_ATLAS_SOURCES } from "../data/assets.js";
@@ -17,7 +18,7 @@ import { TRANSLATIONS } from "../i18n/messages.js";
 import { mapStyle } from "../gameplay/map-generation.js";
 
 // Ağdan gelen 20 Hz snapshot'lar 90 ms gecikmeli çizim tamponunda karışır.
-// Puan/çarpışma aynı sunucu verisidir; interpolasyon yalnızca görünümü etkiler.
+// Diğer aktörler tamponda karışır; kendi oyuncumuz girdiye anında tepki verir.
 export class LanRenderer {
   constructor(canvas) {
     this.canvas = canvas;
@@ -27,6 +28,8 @@ export class LanRenderer {
     this.height = 0;
     this.ctx = canvas.getContext("2d");
     this.frames = [];
+    this.prediction = new LanPrediction();
+    this.ping = 0;
     this.animations = new Map();
     this.players = {};
     this.ghosts = {};
@@ -118,6 +121,7 @@ export class LanRenderer {
   }
   accept(state) {
     const received = performance.now();
+    this.prediction.accept(state, this.myId, this.ping, received);
     if (
       this.frames.at(-1)?.state.level !== state.level ||
       this.frames.at(-1)?.state.state !== state.state
@@ -144,6 +148,7 @@ export class LanRenderer {
     }
   }
   reset() {
+    this.prediction.reset();
     this.spectatingId = null;
     this.frames = [];
     this.animations.clear();
@@ -198,12 +203,15 @@ export class LanRenderer {
             : {}),
         };
       });
+    const own = this.frames.at(-1).state.players.find((p) => p.id === this.myId);
+    const local = this.networkConnected ? this.prediction.sample(now) || own : null;
+    const players = interpolate(next.state.players, previous.state.players);
     return {
       ...next.state,
       gameTime:
         previous.state.gameTime +
         (next.state.gameTime - previous.state.gameTime) * blend,
-      players: interpolate(next.state.players, previous.state.players),
+      players: players.map((player) => player.id === local?.id ? local : player),
       ghosts: interpolate(next.state.ghosts, previous.state.ghosts),
     };
   }

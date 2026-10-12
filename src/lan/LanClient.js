@@ -1,7 +1,7 @@
 import { LAN_RECONNECT_MS, LAN_STALE_MS } from "../data/lan-options.js";
 
-// Skor ve hareket yalnızca sunucudan gelir. Tek komut kuyruğu, aynı sıra numarasıyla
-// yeniden deneme ve snapshot sürümleri geciken/tekrarlanan ağ verisini ayıklar.
+// Sunucu yetkilidir. Yön girdilerinin ayrı sıra numarası vardır; yeni bir dönüş,
+// önceki HTTP yanıtını beklemez. Lobi komutları kendi sıralı kuyruğunda kalır.
 export class LanClient {
   constructor(onState, onStatus, onMetrics = () => {}, options = {}) {
     this.onState = onState;
@@ -14,6 +14,9 @@ export class LanClient {
     this.session = null;
     this.controller = null;
     this.seq = 0;
+    this.directionSeq = 0;
+    this.onDirection = options.onDirection || (() => {});
+    this.onDirectionRejected = options.onDirectionRejected || (() => {});
     this.generation = 0;
     this.commandQueue = Promise.resolve();
     this.lastRevision = 0;
@@ -48,6 +51,7 @@ export class LanClient {
     this.stop();
     this.session = session;
     this.seq = 0;
+    this.directionSeq = 0;
     this.lastRevision = 0;
     this.lastSnapshot = 0;
     try {
@@ -139,6 +143,7 @@ export class LanClient {
     this.lastRevision = state.revision;
     this.lastSnapshot = this.now();
     this.seq = Math.max(this.seq, state.seq || 0);
+    this.directionSeq = Math.max(this.directionSeq, state.directionSeq || 0);
     this.lostSince = 0;
     if (!this.connected) {
       this.connected = true;
@@ -243,17 +248,29 @@ export class LanClient {
   }
   action(type, extra = {}) {
     if (type === "direction") {
-      this.pendingDirection = { ...extra, sentAt: this.now() };
+      const inputSeq = ++this.directionSeq;
+      this.onDirection(extra.dir, inputSeq);
+      this.pendingDirection = { ...extra, inputSeq };
       if (this.directionPromise) return this.directionPromise;
-      this.directionPromise = this.enqueue(async (generation) => {
-        while (this.pendingDirection && generation === this.generation) {
-          const direction = this.pendingDirection;
-          this.pendingDirection = null;
-          if (this.now() - direction.sentAt <= 1000)
-            await this.command(type, { dir: direction.dir }, generation);
-        }
-      }).finally(() => {
+      const generation = this.generation;
+      this.directionPromise = Promise.resolve().then(async () => {
+        if (generation !== this.generation) return;
+        const direction = this.pendingDirection;
+        this.pendingDirection = null;
+        // Yalnızca aynı JS turundaki girdiler birleştirilir; uçuşta olan istek beklenmez.
         this.directionPromise = null;
+        if (!direction) return;
+        try {
+          await this.command(
+            type,
+            { dir: direction.dir, inputSeq: direction.inputSeq },
+            generation,
+          );
+        } catch (error) {
+          if (generation === this.generation)
+            this.onDirectionRejected(direction.inputSeq);
+          throw error;
+        }
       });
       return this.directionPromise;
     }

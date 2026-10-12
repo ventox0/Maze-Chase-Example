@@ -372,3 +372,25 @@ console.log(
 console.log(
   "PASS composed costume Canvas is drawn as a player sprite instead of the loading fallback",
 );
+
+{
+  const w = new LanWorld();
+  const p = w.addPlayer("local", "Test", 0);
+  p.connected = true;
+  w.state = "playing";
+  const old = w.snapshot();
+  const latest = { ...old, players: old.players.map((p) => ({ ...p, x: p.x + 12 })) };
+  const peer = { ...old.players[0], id: "peer", x: 36 };
+  old.players.push(peer);
+  latest.players.push({ ...peer, x: 60 });
+  lan.myId = p.id;
+  lan.networkConnected = true;
+  lan.frames = [{ received: 0, state: old }, { received: 100, state: latest }];
+  lan.prediction.reset(); // Eski sunucuyla da kendi oyuncu en yeni durumdan çizilir.
+  const rendered = lan.sample(150);
+  assert.equal(rendered.players[0].x, latest.players[0].x);
+  assert.ok(Math.abs(rendered.players[1].x - 50.4) < 1e-8);
+  lan.networkConnected = false;
+  assert.notEqual(lan.sample(150).players[0].x, latest.players[0].x);
+}
+console.log("PASS own player bypasses the 90 ms buffer; peers retain smooth interpolation");

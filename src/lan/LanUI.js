@@ -43,7 +43,14 @@ export class LanUI {
     this.client = new LanClient(
       (state) => this.accept(state),
       (status) => this.connection(status),
-      (metrics) => this.panels?.renderNetwork(metrics),
+      (metrics) => {
+        this.renderer.ping = metrics.ping || 0;
+        this.panels?.renderNetwork(metrics);
+      },
+      {
+        onDirection: (dir, seq) => this.renderer.prediction.intent(dir, seq),
+        onDirectionRejected: (seq) => this.renderer.prediction.cancel(seq),
+      },
     );
     this.rewards.client = this.client;
     if (profileStorage.user) {
@@ -297,7 +304,9 @@ export class LanUI {
   }
   async send(type, extra = {}) {
     try {
-      await this.processRewards(this.state);
+      // Oyun girdileri dükkân/ödül senkronizasyonunun ağ yanıtını beklemez.
+      if (!["direction", "ability"].includes(type))
+        await this.processRewards(this.state);
       await this.client.action(type, extra);
     } catch (error) {
       this.feedback(error.message);

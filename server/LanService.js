@@ -179,6 +179,7 @@ export class LanService {
           role: "spectator",
         })),
       seq: room.world.players.get(member?.id)?.lastSeq || member?.lastSeq || 0,
+      directionSeq: member?.lastDirectionSeq || 0,
       walletRewards: room.world.players.get(member?.id)?.walletRewards || [],
     };
   }
@@ -481,12 +482,32 @@ export class LanService {
       const data = await this.body(req);
       if (!Number.isSafeInteger(data.seq) || data.seq <= 0)
         throw fail(400, "badRequest");
-      if (data.seq <= (player?.lastSeq || member.lastSeq)) {
+      // Yön ve lobi/yetenek komutları bağımsızdır: geç gelen bir yön isteği
+      // daha yeni dönüşü veya başka bir komutu geçersiz kılmaz.
+      const direction = data.type === "direction" && data.inputSeq !== undefined;
+      if (
+        direction &&
+        (!Number.isSafeInteger(data.inputSeq) || data.inputSeq <= 0)
+      )
+        throw fail(400, "badRequest");
+      if (
+        direction &&
+        !Object.hasOwn({ up: 1, down: 1, left: 1, right: 1 }, data.dir)
+      )
+        throw fail(400, "badRequest");
+      if (
+        direction
+          ? data.inputSeq <= (member.lastDirectionSeq || 0)
+          : data.seq <= (player?.lastSeq || member.lastSeq)
+      ) {
         this.json(res, 200, { ok: true, duplicate: true });
         return true;
       }
-      member.lastSeq = data.seq;
-      if (player) player.lastSeq = data.seq;
+      if (direction) member.lastDirectionSeq = data.inputSeq;
+      else {
+        member.lastSeq = data.seq;
+        if (player) player.lastSeq = data.seq;
+      }
       const world = room.world,
         lobby = world.state === "lobby",
         owner = room.ownerId === member.id;
