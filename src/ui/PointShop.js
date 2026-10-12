@@ -2,6 +2,9 @@ import { $, canvas, loadoutDialog } from "../core/dom.js";
 import { GameComponent } from "../core/GameComponent.js";
 import { SPRITE_SOURCES } from "../data/assets.js";
 import { SHOP_ITEMS } from "../data/shop.js";
+import { isMissionCosmetic } from "../data/cosmeticRewards.js";
+import { MISSION_BY_ID } from "../data/missions.js";
+import { purchasePrices } from "../data/purchasePrices.js";
 import { AVATAR_SIZE, avatarLayout } from "../rendering/AvatarLayout.js";
 
 // Puan dükkânı: önizleme, satın alma ve iki bağımsız giyim yuvası.
@@ -65,7 +68,7 @@ export class PointShop extends GameComponent {
     canvas.focus({ preventScroll: true });
   }
   chooseCategory(category) {
-    if (!["outfit", "head", "owned"].includes(category)) return;
+    if (!["outfit", "head", "suit", "owned"].includes(category)) return;
     this.category = category;
     const items = this.visibleItems();
     if (!items.some((item) => item.id === this.previewId))
@@ -74,11 +77,13 @@ export class PointShop extends GameComponent {
     this.dialog.scrollTop = 0;
   }
   visibleItems() {
-    return SHOP_ITEMS.filter((item) =>
-      this.category === "owned"
-        ? this.game.wallet.profile.owned.includes(item.id)
-        : item.category === this.category,
-    );
+    return SHOP_ITEMS.filter((item) => {
+      if (this.category === "owned")
+        return this.game.wallet.profile.owned.includes(item.id);
+      if (this.category === "suit")
+        return item.category === "outfit" && item.exclusive;
+      return item.category === this.category && !item.exclusive;
+    });
   }
   preview(id) {
     if (!this.item(id)) return;
@@ -91,6 +96,10 @@ export class PointShop extends GameComponent {
   purchase(id) {
     const item = this.item(id);
     if (!item) return false;
+    if (isMissionCosmetic(item)) {
+      this.feedback("shop.missionOnly");
+      return false;
+    }
     this.game.wallet.refresh();
     const p = this.game.wallet.profile;
     if (p.owned.includes(id)) return false;
@@ -99,6 +108,8 @@ export class PointShop extends GameComponent {
       return false;
     }
     const next = this.game.wallet.clone();
+    next.purchasePrices = purchasePrices(next);
+    next.purchasePrices[id] = item.price;
     next.balance -= item.price;
     next.owned.push(id);
     const cleared = this.applyEquipment(next, item);
@@ -243,6 +254,15 @@ export class PointShop extends GameComponent {
     if (item) this.applyEquipment({ equipped }, item);
     return equipped;
   }
+  missionRequirement(item) {
+    const mission = MISSION_BY_ID.get(item?.unlockMission);
+    return mission
+      ? this.game.i18n.t("shop.missionRequirement", {
+          number: mission.number,
+          goal: this.game.missionMenu.text(mission).description,
+        })
+      : "";
+  }
   render() {
     const t = this.game.i18n.t,
       format = this.game.i18n.formatScore,
@@ -264,9 +284,15 @@ export class PointShop extends GameComponent {
     $("shop-preview-name").textContent = item
       ? this.name(item)
       : this.equippedName();
-    $("shop-preview-info").textContent = item?.exclusive
+    const equipmentInfo = item?.exclusive
       ? t("shop.fullInfo")
       : t("shop.mixInfo");
+    $("shop-preview-info").textContent = [
+      this.missionRequirement(item),
+      equipmentInfo,
+    ]
+      .filter(Boolean)
+      .join(" ");
     const owned = item && p.owned.includes(item.id),
       selected = item && p.equipped[item.category] === item.id;
     const action = $("shop-preview-action");
@@ -274,12 +300,15 @@ export class PointShop extends GameComponent {
     if (item) {
       action.dataset.shopAction = owned ? "equip" : "buy";
       action.dataset.shopId = item.id;
-      action.disabled = selected || (!owned && p.balance < item.price);
+      action.disabled =
+        selected || (!owned && (isMissionCosmetic(item) || p.balance < item.price));
       action.textContent = selected
         ? t("shop.wearing")
         : owned
           ? t("shop.equip")
-          : t("shop.buyPrice", { points: format(item.price) });
+          : isMissionCosmetic(item)
+            ? t("shop.missionLocked")
+            : t("shop.buyPrice", { points: format(item.price) });
     }
     for (const slot of ["outfit", "head"]) {
       $("shop-equipped-" + slot).textContent = this.name(
@@ -293,11 +322,13 @@ export class PointShop extends GameComponent {
         .map((product) => {
           const own = p.owned.includes(product.id),
             wearing = p.equipped[product.category] === product.id;
+          const missionOnly = isMissionCosmetic(product),
+            requirement = this.missionRequirement(product);
           const source = this.avatar(
             product.category === "outfit" ? product.id : null,
             product.category === "head" ? product.id : null,
           );
-          return `<article class="shop-item${this.previewId === product.id ? " previewed" : ""}"><button type="button" class="shop-item-art" data-shop-preview="${product.id}" aria-label="${t("shop.previewName", { name: this.name(product) })}" aria-pressed="${this.previewId === product.id}"><img src="${source}" alt=""><strong>${this.name(product)}</strong></button><small class="shop-item-tag">${product.exclusive ? t("shop.full") : own ? t("shop.owned") : t("shop." + product.category)}</small><span class="shop-price">${own ? t("shop.owned") : t("shop.price", { points: format(product.price) })}</span><button type="button" class="shop-item-action" data-shop-action="${own ? "equip" : "buy"}" data-shop-id="${product.id}" ${wearing || (!own && p.balance < product.price) ? "disabled" : ""}>${wearing ? t("shop.wearing") : own ? t("shop.equip") : t("shop.buy")}</button></article>`;
+          return `<article class="shop-item${this.previewId === product.id ? " previewed" : ""}"><button type="button" class="shop-item-art" data-shop-preview="${product.id}" aria-label="${t("shop.previewName", { name: this.name(product) })}" aria-pressed="${this.previewId === product.id}"><img src="${source}" alt=""><strong>${this.name(product)}</strong></button><small class="shop-item-tag">${missionOnly ? t("shop.missionReward") : product.exclusive ? t("shop.full") : own ? t("shop.owned") : t("shop." + product.category)}</small><span class="shop-price">${own ? t("shop.owned") : missionOnly ? requirement : t("shop.price", { points: format(product.price) })}</span><button type="button" class="shop-item-action" data-shop-action="${own ? "equip" : "buy"}" data-shop-id="${product.id}" ${wearing || (!own && (missionOnly || p.balance < product.price)) ? "disabled" : ""}>${wearing ? t("shop.wearing") : own ? t("shop.equip") : missionOnly ? t("shop.missionLocked") : t("shop.buy")}</button></article>`;
         })
         .join("") || `<p class="shop-empty">${t("shop.empty")}</p>`;
     this.renderFeedback();

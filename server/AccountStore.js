@@ -11,6 +11,11 @@ import {
 import { PointWallet } from "../src/storage/PointWallet.js";
 import { MissionProgress } from "../src/storage/MissionProgress.js";
 import { SHOP_ITEMS } from "../src/data/shop.js";
+import { purchasePrices } from "../src/data/purchasePrices.js";
+import {
+  grantMissionCosmetics,
+  isMissionCosmetic,
+} from "../src/data/cosmeticRewards.js";
 import { MISSION_COUNTERS, MISSION_BY_ID } from "../src/data/missions.js";
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const digest = (value) => createHash("sha256").update(value).digest("hex");
@@ -211,7 +216,9 @@ export class AccountStore {
   }
   wallet(p) {
     const value = JSON.parse(p.data[WALLET_KEY] || "null");
-    return walletRules.validate(value) ? value : walletRules.empty();
+    if (!walletRules.validate(value)) return walletRules.empty();
+    value.purchasePrices = purchasePrices(value);
+    return value;
   }
   validData(key, raw) {
     if (
@@ -343,17 +350,22 @@ export class AccountStore {
       wallet.totalEarned += m.reward;
       wallet.balance += m.reward;
     }
+    grantMissionCosmetics(wallet);
     for (const id of incoming.owned)
       if (!wallet.owned.includes(id)) {
         const item = SHOP_ITEMS.find((i) => i.id === id);
+        if (isMissionCosmetic(item)) throw fail(400, "profileInvalid");
         if (wallet.balance < item.price) throw fail(409, "shopShort");
         wallet.balance -= item.price;
         wallet.owned.push(id);
+        wallet.purchasePrices ||= {};
+        wallet.purchasePrices[id] = item.price;
       }
     wallet.equipped = clone(incoming.equipped);
     while (Object.keys(wallet.runs).length > 128)
       delete wallet.runs[Object.keys(wallet.runs)[0]];
     if (!walletRules.validate(wallet)) throw fail(400, "profileInvalid");
+    wallet.purchasePrices = purchasePrices(wallet);
     p.data[WALLET_KEY] = JSON.stringify(wallet);
   }
   import(id, data) {

@@ -251,6 +251,7 @@
     700 10px ui-monospace,
     monospace;
   margin: 6px 0 10px;
+  line-height: 1.6;
 }
 .shop-item-action {
   width: 100%;

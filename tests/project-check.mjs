@@ -31,12 +31,12 @@ await inspectModules(new URL("src/", root));
 const urls = Object.values(assets).flatMap((value) =>
   typeof value === "string" ? [value] : Object.values(value),
 );
-assert.equal(urls.length, 12);
+assert.equal(urls.length, 13);
 for (const url of urls) await access(fileURLToPath(url));
 const css = await readFile(new URL("styles/main.css", root), "utf8");
 for (const match of css.matchAll(/@import url\("([^"\)]+)"\)/g))
   await access(new URL(match[1], new URL("styles/main.css", root)));
-console.log("PASS HTML, ESM importları, 12 görsel ve CSS dosyaları");
+console.log("PASS HTML, ESM importları, 13 görsel ve CSS dosyaları");
 
 const server = createDevServer();
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));

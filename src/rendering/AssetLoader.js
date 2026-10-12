@@ -8,6 +8,7 @@ import {
 } from "../data/assets.js";
 import { GHOSTS } from "../data/ghosts.js";
 import { SHOP_ATLAS_REGIONS, SHOP_ITEMS } from "../data/shop.js";
+import { FULL_SUIT_REGIONS } from "../data/fullSuits.js";
 
 // Harici oyuncu, hayalet, aksiyon ve dükkân görsellerini yükler ve kırpar.
 export class AssetLoader extends GameComponent {
@@ -116,18 +117,32 @@ export class AssetLoader extends GameComponent {
   }
 
   loadShopSprites() {
+    // Yeni kostümler kendi şeffaf dosyalarıyla eklenebilir; mevcut atlaslar korunur.
+    for (const item of SHOP_ITEMS.filter((item) => item.source)) {
+      const image = new Image();
+      image.onload = () => {
+        this.cosmetics[item.id] = image;
+        this.game.shop.assetsReady();
+      };
+      image.src = item.source;
+    }
     for (const [sheet, source] of Object.entries(SHOP_ATLAS_SOURCES)) {
       const image = new Image();
       image.onload = () => {
         for (const item of SHOP_ITEMS.filter(
           (item) =>
-            (item.original
-              ? "special"
-              : item.category === "outfit"
-                ? "outfits"
-                : "heads") === sheet,
+            !item.source &&
+            (item.atlas ||
+              (item.original
+                ? "special"
+                : item.category === "outfit"
+                  ? "outfits"
+                  : "heads")) === sheet,
         )) {
-          const region = SHOP_ATLAS_REGIONS[sheet][item.index];
+          const region =
+            sheet === "suits"
+              ? FULL_SUIT_REGIONS[item.index]
+              : SHOP_ATLAS_REGIONS[sheet][item.index];
           this.cosmetics[item.id] = this.isolateShopSprite(image, ...region);
         }
         this.game.shop.assetsReady();

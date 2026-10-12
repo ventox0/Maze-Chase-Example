@@ -20,6 +20,7 @@ export const SHOP_ATLAS_SOURCES = {
     .href,
   special: new URL("../../assets/shop/special-outfits-v2.png", import.meta.url)
     .href,
+  suits: new URL("../../assets/shop/full-suits-v1.png", import.meta.url).href,
 };
 
 export const GHOST_ATLAS_SOURCES = [

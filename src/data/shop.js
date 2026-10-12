@@ -1,5 +1,7 @@
-// Dinleyici ve RAF geri çağrılarında sınıfın this bağlamını korur.
-export const SHOP_ITEMS = [
+import { FULL_SUITS } from "./fullSuits.js";
+
+// Sabit ürün kimlikleri envanter ve hesap kayıtlarının sözleşmesidir.
+const BASE_SHOP_ITEMS = [
   {
     id: "royal_cloak",
     category: "outfit",
@@ -520,7 +522,15 @@ export const SHOP_ITEMS = [
     original: false,
     wrap: false,
   },
+  ...FULL_SUITS,
 ];
+
+// Tam giysi fiyatları üç katına çıkarılır; eski alışveriş bedeli korunur.
+export const SHOP_ITEMS = BASE_SHOP_ITEMS.map((item) =>
+  item.exclusive
+    ? { ...item, previousPrice: item.price, price: item.price * 3 }
+    : item,
+);
 
 export const SHOP_ATLAS_REGIONS = {
   heads: [

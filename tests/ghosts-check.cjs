@@ -2403,13 +2403,13 @@ const { fileURLToPath } = require("node:url");
     shop.category = "outfit";
   }
   check(
-    "dükkânda 20 kostüm + 20 başlık, dört tam set ve iki özgün özel model",
+    "dükkânda 44 kostüm + 20 başlık, 28 tam giysi ve iki özgün özel model",
     () => {
-      assert.equal(catalog.length, 40);
-      assert.equal(new Set(catalog.map((item) => item.id)).size, 40);
+      assert.equal(catalog.length, 64);
+      assert.equal(new Set(catalog.map((item) => item.id)).size, 64);
       assert.equal(
         catalog.filter((item) => item.category === "outfit").length,
-        20,
+        44,
       );
       assert.equal(
         catalog.filter((item) => item.category === "head").length,
@@ -2417,7 +2417,7 @@ const { fileURLToPath } = require("node:url");
       );
       assert.equal(
         catalog
-          .filter((item) => item.exclusive)
+          .filter((item) => item.exclusive && !item.atlas)
           .map((item) => item.id)
           .sort()
           .join(","),
@@ -2515,10 +2515,10 @@ const { fileURLToPath } = require("node:url");
     },
   );
   check(
-    "dört tam set başlığı çıkarır; başlık takmak tam seti çıkarır, ücret tekrar alınmaz",
+    "tüm tam giysiler başlığı çıkarır; başlık takmak tam seti çıkarır, ücret tekrar alınmaz",
     () => {
       freshShop();
-      game.addScore(100000);
+      game.addScore(catalog.reduce((total, item) => total + item.price, 0));
       shop.purchase("baseball_cap");
       for (const item of catalog.filter((item) => item.exclusive)) {
         shop.equip("baseball_cap");
@@ -2698,7 +2698,16 @@ const { fileURLToPath } = require("node:url");
       );
       shop.close();
       shop.chooseCategory("outfit");
-      assert.equal(shop.visibleItems().length, 20);
+      assert.equal(shop.visibleItems().length, 16);
+      assert.ok(shop.visibleItems().every((item) => !item.exclusive));
+      shop.chooseCategory("suit");
+      assert.equal(shop.visibleItems().length, 28);
+      assert.ok(shop.visibleItems().every((item) => item.exclusive));
+      assert.ok(shop.visibleItems().filter((item) => item.atlas === "suits").every((item) => !item.unlockMission));
+      assert.deepEqual(
+        shop.visibleItems().filter((item) => !item.atlas).map((item) => item.id),
+        ["space_suit", "cyber_armor", "pumpkin", "viking_armor"],
+      );
     },
   );
   check(
@@ -2749,7 +2758,7 @@ const { fileURLToPath } = require("node:url");
   );
   console.log(
     count +
-      " verified checks passed (wallet + 40-item shop + wardrobe + all regressions).",
+      " verified checks passed (wallet + 64-item shop + wardrobe + all regressions).",
   );
   check("eski biçimdeki kayıt kimliği de uzun puan geçmişinde korunur", () => {
     freshShop();

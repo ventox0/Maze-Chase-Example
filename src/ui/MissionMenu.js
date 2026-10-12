@@ -1,5 +1,6 @@
 import { $, canvas, loadoutDialog } from "../core/dom.js";
 import { GameComponent } from "../core/GameComponent.js";
+import { missionCosmetics } from "../data/cosmeticRewards.js";
 import { MISSIONS, MISSION_CATEGORIES } from "../data/missions.js";
 
 // Tüm hedefler paralel ilerler. Filtre ve sayfalama oyuncunun hedef bulmasını kolaylaştırır.
@@ -185,7 +186,12 @@ export class MissionMenu extends GameComponent {
               : Math.min(tracker.value(m), m.target),
             percent = Math.min(100, (progress / m.target) * 100),
             text = this.text(m);
-          return `<article class="mission-card ${status}"><div class="mission-number">${String(m.number).padStart(3, "0")}</div><div class="mission-content"><span class="mission-category">${t("missions.category." + m.category)}</span><h3>${text.name}</h3><p>${text.description}</p><div class="mission-progress" role="progressbar" aria-label="${text.description}" aria-valuemin="0" aria-valuemax="${m.target}" aria-valuenow="${progress}"><span style="width:${percent}%"></span></div><small>${this.game.i18n.formatScore(progress)} / ${this.game.i18n.formatScore(m.target)}</small></div><div class="mission-reward"><strong>+${this.game.i18n.formatScore(m.reward)}</strong><span>${t("missions.points")}</span><button class="icon-button" type="button" data-mission-claim="${m.id}" ${status !== "ready" ? "disabled" : ""} aria-label="${t(status === "claimed" ? "missions.rewardClaimed" : status === "ready" ? "missions.claimNamed" : "missions.inProgressNamed", { number: m.number })}">${t(status === "claimed" ? "missions.claimed" : status === "ready" ? "missions.claim" : "missions.active")}</button></div></article>`;
+          const cosmetics = missionCosmetics(m.id).map((item) =>
+            this.game.shop.name(item)).join(", ");
+          const cosmeticReward = cosmetics
+            ? `<small class="mission-cosmetic-reward">${t("missions.cosmeticReward", { names: cosmetics })}</small>`
+            : "";
+          return `<article class="mission-card ${status}"><div class="mission-number">${String(m.number).padStart(3, "0")}</div><div class="mission-content"><span class="mission-category">${t("missions.category." + m.category)}</span><h3>${text.name}</h3><p>${text.description}</p><div class="mission-progress" role="progressbar" aria-label="${text.description}" aria-valuemin="0" aria-valuemax="${m.target}" aria-valuenow="${progress}"><span style="width:${percent}%"></span></div><small>${this.game.i18n.formatScore(progress)} / ${this.game.i18n.formatScore(m.target)}</small></div><div class="mission-reward">${cosmeticReward}<strong>+${this.game.i18n.formatScore(m.reward)}</strong><span>${t("missions.points")}</span><button class="icon-button" type="button" data-mission-claim="${m.id}" ${status !== "ready" ? "disabled" : ""} aria-label="${t(status === "claimed" ? "missions.rewardClaimed" : status === "ready" ? "missions.claimNamed" : "missions.inProgressNamed", { number: m.number })}">${t(status === "claimed" ? "missions.claimed" : status === "ready" ? "missions.claim" : "missions.active")}</button></div></article>`;
         })
         .join("") || `<p class="missions-empty">${t("missions.empty")}</p>`;
     $("missions-feedback").textContent = t(

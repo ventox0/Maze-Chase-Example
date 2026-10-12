@@ -257,6 +257,13 @@
   margin-top: 18px;
   white-space: nowrap;
 }
+.mission-cosmetic-reward {
+  max-width: 110px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #a28bff;
+  overflow-wrap: anywhere;
+}
 .mission-card.ready .mission-reward button {
   color: #80e8b2;
   border-color: #80e8b250;

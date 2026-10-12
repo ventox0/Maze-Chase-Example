@@ -2,6 +2,11 @@ import { profileStorage } from "../account/ProfileStorage.js";
 import { GameComponent } from "../core/GameComponent.js";
 import { MISSION_BY_ID } from "../data/missions.js";
 import { SHOP_ITEMS } from "../data/shop.js";
+import {
+  grantMissionCosmetics,
+  isMissionCosmetic,
+} from "../data/cosmeticRewards.js";
+import { purchasePrices } from "../data/purchasePrices.js";
 
 // Bölüm skorundan bağımsız kalıcı cüzdan, envanter ve puan geçmişi.
 export class PointWallet extends GameComponent {
@@ -55,11 +60,7 @@ export class PointWallet extends GameComponent {
         return false;
       if (p.owned.some((id) => !SHOP_ITEMS.some((item) => item.id === id)))
         return false;
-      const spent = p.owned.reduce(
-        (sum, id) => sum + SHOP_ITEMS.find((item) => item.id === id).price,
-        0,
-      );
-      if (p.totalEarned !== p.balance + spent || !p.equipped) return false;
+      if (!purchasePrices(p) || !p.equipped) return false;
       for (const slot of ["outfit", "head"])
         if (
           p.equipped[slot] !== null &&
@@ -80,6 +81,17 @@ export class PointWallet extends GameComponent {
           p.missionRewards.length > 100 ||
           new Set(p.missionRewards).size !== p.missionRewards.length ||
           p.missionRewards.some((id) => !MISSION_BY_ID.has(id)))
+      )
+        return false;
+      if (
+        p.owned.some((id) => {
+          const item = SHOP_ITEMS.find((i) => i.id === id);
+          return (
+            isMissionCosmetic(item) &&
+            (!MISSION_BY_ID.has(item.unlockMission) ||
+              !p.missionRewards?.includes(item.unlockMission))
+          );
+        })
       )
         return false;
       if (p.lanRewardCutoff !== undefined && !this.integer(p.lanRewardCutoff))
@@ -171,6 +183,7 @@ export class PointWallet extends GameComponent {
       const raw = profileStorage.getItem(this.key),
         p = raw && raw.length < 262144 ? JSON.parse(raw) : null;
       this.profile = this.validate(p) ? p : this.empty();
+      this.syncMissionCosmetics();
     } catch (_) {
       this.profile = this.empty();
       this.storageUnavailable = true;
@@ -181,11 +194,15 @@ export class PointWallet extends GameComponent {
     try {
       const raw = profileStorage.getItem(this.key),
         p = raw && raw.length < 262144 ? JSON.parse(raw) : null;
-      if (this.validate(p)) this.profile = p;
+      if (this.validate(p)) {
+        this.profile = p;
+        this.syncMissionCosmetics();
+      }
     } catch (_) {}
   }
   persist(next, strict = false) {
     if (!this.validate(next)) return false;
+    next.purchasePrices = purchasePrices(next);
     try {
       profileStorage.setItem(this.key, JSON.stringify(next));
       this.storageUnavailable = false;
@@ -198,6 +215,10 @@ export class PointWallet extends GameComponent {
     }
     this.profile = next;
     return true;
+  }
+  syncMissionCosmetics() {
+    const next = this.clone();
+    if (grantMissionCosmetics(next)) this.persist(next, true);
   }
   prune(profile) {
     const protectedIds = new Set([
@@ -233,6 +254,7 @@ export class PointWallet extends GameComponent {
     next.missionRewards = [...(next.missionRewards || []), id];
     next.totalEarned += mission.reward;
     next.balance += mission.reward;
+    grantMissionCosmetics(next);
     return this.persist(next, true);
   }
   credit(points) {
