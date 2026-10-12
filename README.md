@@ -1,6 +1,8 @@
 # Maze Chaser · Natifex Interactive
 
-HTML5 Canvas ve Vanilla JavaScript ile yazılmış, Türkçe/İngilizce destekli arcade labirent oyunu. Sürüm: **alpha.0.1.0**. Tek oyunculu oyun 1.000 bölüm, sekiz hayalet türü, Q/E yetenekleri, aksiyon sahneleri, bölüm seçimi, kayıt sistemi, puan dükkânı ve 100 görev içerir. Alpha güncellemesi **2–4 oyunculu LAN iş birliği ve puan yarışı** modlarını ekler. Harici paket veya derleme gerekmez.
+HTML5 Canvas ve Vanilla JavaScript ile yazılmış, Türkçe/İngilizce destekli arcade labirent oyunu. Sürüm: **alpha.0.1.1**. Tek oyunculu oyun 1.000 bölüm, sekiz hayalet türü, Q/E yetenekleri, aksiyon sahneleri, bölüm seçimi, kayıt sistemi, puan dükkânı ve 100 görev içerir. Multiplayer **2–4 oyunculu iş birliği ve puan yarışı** modlarını destekler. Harici paket veya derleme gerekmez.
+
+Son sürümde ayrı **Özelleştirme** gardırobu, 24 yeni tam giysi ve güncellenen fiyatlar bulunur. Ayrıntılar: [Güncelleme notları](./CHANGELOG.md). Oyun içindeki **Neler değişti?** bölümünden de okunabilir.
 
 ## Çalıştırma
 
@@ -31,7 +33,7 @@ Sunucu `0.0.0.0:8765` üzerinde açılır; terminal yerel IPv4 katılım adresle
 
 - **İş birliği:** kişisel üç can ve skor, ortak takım toplamı. Yemleri temizleyip merkez can yemini alın; hayaletler son yemle kalkar. Can yemi yaşayan oyuncuların her birine +1 can veya üç canı varsa +500 puan verir. Oda sahibi sonraki haritayı açar; elenen takım arkadaşları bir canla geri döner. Takımın bütün canları biterse maç sona erer.
 - **Puan yarışı:** aynı labirentte üç dakika. Küçük yem +10, güç yemi +50, hayalet +200; puan ilk toplayana yazılır. Süre bitince, bir oyuncu kalınca veya merkez can yemi toplanınca en yüksek toplam puan kazanır; eşitlikte ortak kazananlar gösterilir. Merkez can yemi ödülü onu alan oyuncuya verilir.
-- Oyuncu kartları dükkânda seçilmiş kostüm ve başlığı gösterir; aynı görünüm normal oyun halinde haritada da kullanılır. Güç/yetenek etkileri kendi modellerini gösterir. **Dükkânda görünüm seç** ayrı sekmede normal dükkânı açar; ardından **Dükkândaki görünümümü kullan** seçimi odaya aktarır. Özel tam kostümler başlıkla birleştirilmez.
+- Oyuncu kartları Özelleştirme ekranında kaydedilmiş kostüm ve başlığı gösterir; aynı görünüm normal oyun halinde haritada da kullanılır. Güç/yetenek etkileri kendi modellerini gösterir. **Özelleştirmeyi aç** ayrı sekmede gardırop ekranını açar; ardından **Seçtiğim görünümü kullan** seçimi odaya aktarır. Özel tam kostümler başlıkla birleştirilmez.
 - Bölüm/maç sonunda **Maç istatistikleri** kişisel skor, küçük yem, güç yemi, yenilen hayalet, can kaybı ve başarılı yetenek kullanımını gösterir. Bunlar maç boyunca birikir ve yeni maç başlatılınca sıfırlanır. Görünüm mobilde yatay kaydırılabilir.
 - Kadro 6 hayalet olarak kalır. İki/üç/dört oyuncu için hayalet hızı sırasıyla **%90 / %100 / %110**, başlangıç çıkış aralığı **1,25 / 1 / 0,75 saniye**, özel yetenek bekleme çarpanı **1,15 / 1 / 0,85** olur. Kadro bölüm başında kilitlenir; can kaybı zorluğu düşürmez. Hayaletlerin yakınlık seçimi mevcut hedef baskısını da hesaba katar.
 - Yarış haritaları yatay ve dikey simetriktir: başlangıç çevresindeki yem fırsatları ve merkeze yol uzaklığı eşittir. Dört güç yemi simetrik dörtlü, beşinci güç yemi ortak merkez alanında rastgele olarak, her maç farklı konumlarda yerleşir; hayalet çıkışları karşılıklı çiftler halindedir. İş birliği haritaları serbest prosedürel üretimi kullanır.
@@ -131,7 +133,7 @@ Misafir kayıtları, rekor, cüzdan ve koleksiyon mevcut `localStorage` anahtarl
 - **Kaydet ve menü**: kaydet ve başlangıç ekranına dön.
 - Her 5 bölümün sonunda otomatik checkpoint alınır; 1000. bölümde tamamlanma kaydı oluşturulur.
 - Alışveriş bölüm skorunu, rekoru veya toplam kazanılan puanı azaltmaz.
-- Cyber Armor, Pumpkin, Space Suit ve Viking Armor tam settir. Diğer kostüm ve başlıklar birlikte veya ayrı takılabilir.
+- Tam Giysi kategorisindeki 28 ürün tam settir. Kostümler kategorisindeki parçalar ve başlıklar birlikte veya ayrı takılabilir.
 
 ## Yayınlama
 
@@ -177,3 +179,14 @@ Profil yazımı yarım saniyelik aralıkla birleştirilir. Hesap düğmesindeki 
 `.env.example` örnektir; sunucu `.env` dosyasını otomatik okumaz. Değişkenleri Dokploy ortam ayarlarında veya shell üzerinden tanımla. `/health` hesap dizini hazırsa 200, okunamıyorsa 503 döner. Hesap dosyaları statik HTTP erişimine ve Git'e kapalıdır; `.data/` yedeklenmelidir. Volume olmadan container yenilenince hesap verisi kaybolabilir. Mevcut dosya deposu **tek Node süreci / tek replica** içindir; yatay ölçeklemeden önce ortak veritabanı ve oda altyapısı gerekir.
 
 `tests/accounts-check.mjs` tek karakterli/uzun Unicode şifreyi, yanlış giriş/çapraz origin reddini, profil izolasyonunu, diskten tekrar yüklemeyi, çakışan yazıları, tek seferlik aktarım/ödülleri, özel odaları, canlı izleyiciyi, çıkarma yetkisini ve offline yeniden denemeyi gerçek HTTP/SSE ile doğrular. Docker yayını bu değişiklikle hazırlanır; otomatik olarak deploy edilmez.
+
+## Özelleştirme
+
+Puan dükkânı yeni parçaları satın almak içindir. Satın alma mevcut görünümü değiştirmez.
+Yanındaki **Özelleştirme** düğmesi sahip olunan kostüm, başlık ve tam giysileri açar.
+Parçaları önizlemede birlikte dene, **Uygula** ile görünümünü kaydet. Kaydetmeden kapatmak
+aktif görünümü korur. Tam giysiler başlıkla birlikte takılmaz; uyumsuz parça taslaktan çıkarılır.
+
+Dükkân ve Özelleştirme arasında geçiş oyunu duraklatılmış tutar. Multiplayer gardırop
+bağlantısı doğrudan `index.html#customization` ekranını açar. Kayıt, mevcut cüzdandaki
+`equipped` alanını kullanır; koleksiyon, satın alma geçmişi ve bakiye korunur.

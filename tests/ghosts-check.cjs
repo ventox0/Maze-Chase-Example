@@ -2472,7 +2472,7 @@ const { fileURLToPath } = require("node:url");
       assert.equal(game.score, 5000);
       assert.equal(game.highScore, high);
       assert.equal(wallet.profile.owned.join(","), "sports_singlet");
-      assert.equal(wallet.profile.equipped.outfit, "sports_singlet");
+      assert.equal(wallet.profile.equipped.outfit, null);
       const after = JSON.stringify(wallet.profile);
       assert.equal(shop.purchase("sports_singlet"), false);
       assert.equal(JSON.stringify(wallet.profile), after);
@@ -2494,7 +2494,9 @@ const { fileURLToPath } = require("node:url");
       freshShop();
       game.addScore(5000);
       shop.purchase("sports_singlet");
+      shop.equip("sports_singlet");
       shop.purchase("baseball_cap");
+      shop.equip("baseball_cap");
       assert.equal(wallet.profile.equipped.outfit, "sports_singlet");
       assert.equal(wallet.profile.equipped.head, "baseball_cap");
       const balance = wallet.profile.balance;
@@ -2520,9 +2522,11 @@ const { fileURLToPath } = require("node:url");
       freshShop();
       game.addScore(catalog.reduce((total, item) => total + item.price, 0));
       shop.purchase("baseball_cap");
+      shop.equip("baseball_cap");
       for (const item of catalog.filter((item) => item.exclusive)) {
         shop.equip("baseball_cap");
         shop.purchase(item.id);
+        shop.equip(item.id);
         assert.equal(wallet.profile.equipped.outfit, item.id);
         assert.equal(wallet.profile.equipped.head, null);
         const balance = wallet.profile.balance;
@@ -2542,7 +2546,9 @@ const { fileURLToPath } = require("node:url");
       freshShop();
       game.addScore(5000);
       shop.purchase("sports_singlet");
+      shop.equip("sports_singlet");
       shop.purchase("baseball_cap");
+      shop.equip("baseball_cap");
       const other = new game.constructor();
       other.wallet.load();
       assert.equal(
@@ -2562,6 +2568,7 @@ const { fileURLToPath } = require("node:url");
       const saved = save.capture();
       save.write("manual", saved);
       shop.purchase("sports_singlet");
+      shop.equip("sports_singlet");
       game.addScore(100);
       assert.equal(wallet.profile.balance, 2600);
       save.resume("manual");
@@ -2602,6 +2609,7 @@ const { fileURLToPath } = require("node:url");
       freshShop();
       game.addScore(5000);
       shop.purchase("baseball_cap");
+      shop.equip("baseball_cap");
       const after = JSON.stringify(wallet.profile),
         previous = stored.get(wallet.key),
         original = sandbox.localStorage.setItem;
@@ -2679,24 +2687,27 @@ const { fileURLToPath } = require("node:url");
       freshShop();
       game.addScore(5000);
       shop.purchase("baseball_cap");
+      shop.equip("baseball_cap");
       shop.open();
       shop.chooseCategory("head");
       assert.equal(shop.visibleItems().length, 20);
-      shop.chooseCategory("owned");
-      assert.equal(shop.visibleItems().length, 1);
+      shop.close();
+      game.customization.open();
+      game.customization.chooseCategory("all");
+      assert.equal(game.customization.visibleItems().length, 1);
       game.i18n.setLanguage("en");
-      assert.match(element("shop-items").innerHTML, /Baseball Cap/);
-      assert.equal(element("shop-equipped-head").textContent, "Baseball Cap");
+      assert.match(element("customization-items").innerHTML, /Baseball Cap/);
+      assert.equal(element("customization-equipped-head").textContent, "Baseball Cap");
       assert.match(
         element("shop-feedback").textContent,
-        /Bought and equipped Baseball Cap/,
+        /Equipped Baseball Cap/,
       );
       game.i18n.setLanguage("tr");
       assert.equal(
-        element("shop-equipped-head").textContent,
+        element("customization-equipped-head").textContent,
         "Beyzbol Şapkası",
       );
-      shop.close();
+      game.customization.close();
       shop.chooseCategory("outfit");
       assert.equal(shop.visibleItems().length, 16);
       assert.ok(shop.visibleItems().every((item) => !item.exclusive));
@@ -2716,7 +2727,9 @@ const { fileURLToPath } = require("node:url");
       freshShop();
       game.addScore(10000);
       shop.purchase("sports_singlet");
+      shop.equip("sports_singlet");
       shop.purchase("baseball_cap");
+      shop.equip("baseball_cap");
       for (const dir of ["left", "right", "up", "down"]) {
         game.player.entity.dir = dir;
         game.renderer.drawPlayer();

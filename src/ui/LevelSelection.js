@@ -14,6 +14,7 @@ export class LevelSelection extends GameComponent {
   }
   open() {
     if (
+      this.game.customization.dialog.open ||
       !(
         ["ready", "gameover"].includes(this.game.state) ||
         (this.game.state === "victory" && this.game.level === MAX_LEVEL)

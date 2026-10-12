@@ -20,6 +20,7 @@ export class MissionMenu extends GameComponent {
     if (
       this.dialog.open ||
       this.game.shop.dialog.open ||
+      this.game.customization.dialog.open ||
       this.game.settings.dialog.open ||
       this.game.levels.dialog.open ||
       this.game.challengeMenu.dialog.open ||
@@ -140,6 +141,7 @@ export class MissionMenu extends GameComponent {
     $("missions-button").disabled =
       this.game.state === "dying" ||
       this.game.shop.dialog.open ||
+      this.game.customization.dialog.open ||
       this.game.settings.dialog.open ||
       this.game.levels.dialog.open ||
       this.game.challengeMenu.dialog.open ||

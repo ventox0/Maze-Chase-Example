@@ -1,0 +1,24 @@
+/* Yerel details öğesi klavye ve dokunma ile açılır; oyun durumunu değiştirmez. */
+.release-notes {
+  margin: -9px 0 22px;
+  border: 1px solid var(--line, #292940);
+  border-radius: 12px;
+  background: #111120;
+  color: var(--muted);
+  font-size: 12px;
+}
+.release-notes summary {
+  padding: 12px 16px;
+  color: var(--yellow);
+  cursor: pointer;
+  font-weight: 700;
+}
+.release-notes summary:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 3px;
+  border-radius: 12px;
+}
+.release-notes-body { padding: 0 16px 14px; line-height: 1.7; }
+.release-notes-body p { margin: 0 0 8px; color: #e5e5f3; }
+.release-notes-body ul { margin: 0; padding-left: 19px; }
+.release-notes-body li + li { margin-top: 5px; }

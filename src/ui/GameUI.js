@@ -243,12 +243,14 @@ export class GameUI extends GameComponent {
     }
     this.game.arcade.renderUI();
     this.game.shop.updateWallet();
+    this.game.customization.updateButton();
     this.game.missionMenu.updateBadge();
     $("save-button").disabled = !this.game.saves.canSave();
     $("home-button").disabled = this.game.challenges.active
       ? this.game.state === "ready" ||
         this.game.challengeMenu.dialog.open ||
         this.game.shop.dialog.open ||
+        this.game.customization.dialog.open ||
         this.game.settings.dialog.open ||
         this.game.missionMenu.dialog.open ||
         loadoutDialog.open

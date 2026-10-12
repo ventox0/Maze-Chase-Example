@@ -25,6 +25,10 @@ profileStorage.listeners.add(() => {
     game.missions.refresh();
     game.ui.updateHUD();
     if (game.shop.dialog.open) game.shop.render();
+    if (game.customization.dialog.open) game.customization.render();
     if (game.missionMenu.dialog.open) game.missionMenu.render();
   }
 });
+
+// Multiplayer gardırop bağlantısı doğrudan bu ekrana gelir.
+if (window.location.hash === "#customization") game.customization.open();

@@ -93,6 +93,7 @@ export class SettingsMenu extends GameComponent {
     if (
       this.dialog.open ||
       this.game.shop.dialog.open ||
+      this.game.customization.dialog.open ||
       this.game.challengeMenu.dialog.open ||
       this.game.missionMenu.dialog.open ||
       this.game.levels.dialog.open ||

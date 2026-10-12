@@ -33,8 +33,8 @@ export const STRINGS = {
     voteHint:
       "Hazır olmadan önce oyunu seç. Eşitlikte oda sahibinin oyu, sonra seçenek sırası belirler.",
     voteSummary: "Seçilen: {mode} · {map} ({votes} harita oyu)",
-    wearCurrent: "Dükkândaki görünümümü kullan",
-    openWardrobe: "Dükkânda görünüm seç ↗",
+    wearCurrent: "Seçtiğim görünümü kullan",
+    openWardrobe: "Özelleştirmeyi aç ↗",
     normalAppearance: "Klasik görünüm",
     resultsTitle: "Maç istatistikleri",
     resultsSummary:
@@ -210,8 +210,8 @@ export const STRINGS = {
     voteHint:
       "Vote before readying up. Ties use the connected host’s vote, then option order.",
     voteSummary: "Selected: {mode} · {map} ({votes} map votes)",
-    wearCurrent: "Use my shop appearance",
-    openWardrobe: "Choose a shop appearance ↗",
+    wearCurrent: "Use my customized appearance",
+    openWardrobe: "Open customization ↗",
     normalAppearance: "Classic appearance",
     resultsTitle: "Match statistics",
     resultsSummary:

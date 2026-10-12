@@ -117,6 +117,7 @@ export class SaveManager extends GameComponent {
       !loadoutDialog.open &&
       !this.game.levels.dialog.open &&
       !this.game.shop.dialog.open &&
+      !this.game.customization.dialog.open &&
       !this.game.settings.dialog.open &&
       !this.game.arcade.transition
     );

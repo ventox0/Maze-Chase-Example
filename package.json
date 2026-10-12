@@ -1,12 +1,12 @@
 {
   "name": "kasaba-maze-chaser",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.1-alpha.1",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev-server.mjs",
     "start": "node scripts/dev-server.mjs",
-    "test": "node tests/ghosts-check.cjs && node tests/arcade-check.mjs && node tests/avatar-fitting-check.mjs && node tests/challenge-check.mjs && node tests/missions-check.mjs && node tests/cosmetic-rewards-check.mjs && node tests/shop-prices-check.mjs && node tests/project-check.mjs && node tests/lan-check.mjs && node tests/lan-rendering-check.mjs && node tests/lan-map-check.mjs && node tests/lan-update-check.mjs && node tests/lan-readiness-check.mjs && node tests/lan-latency-check.mjs && node tests/accounts-check.mjs",
+    "test": "node tests/ghosts-check.cjs && node tests/arcade-check.mjs && node tests/avatar-fitting-check.mjs && node tests/challenge-check.mjs && node tests/missions-check.mjs && node tests/cosmetic-rewards-check.mjs && node tests/shop-prices-check.mjs && node tests/customization-check.mjs && node tests/project-check.mjs && node tests/lan-check.mjs && node tests/lan-rendering-check.mjs && node tests/lan-map-check.mjs && node tests/lan-update-check.mjs && node tests/lan-readiness-check.mjs && node tests/lan-latency-check.mjs && node tests/accounts-check.mjs",
     "lan": "node scripts/dev-server.mjs --lan"
   },
   "engines": {

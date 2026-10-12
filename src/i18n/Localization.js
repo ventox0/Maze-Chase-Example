@@ -66,6 +66,7 @@ export class Localization extends GameComponent {
     this.game.shop.lastWallet = "";
     this.game.shop.renderFeedback();
     if (this.game.shop.dialog.open) this.game.shop.render();
+    if (this.game.customization.dialog.open) this.game.customization.render();
     if (this.game.levels.dialog.open) this.game.levels.renderMenu();
     if (this.game.challengeMenu.dialog.open) this.game.challengeMenu.render();
     if (this.game.missionMenu.dialog.open) this.game.missionMenu.render();

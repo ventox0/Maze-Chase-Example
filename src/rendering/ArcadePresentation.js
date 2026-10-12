@@ -45,7 +45,8 @@ export class ArcadePresentation extends GameComponent {
     this.game.lastFrame = 0;
     this.game.accumulator = 0;
     this.renderUI();
-    if (!this.game.settings.dialog.open) canvas.focus({ preventScroll: true });
+    if (!this.game.settings.dialog.open && !this.game.customization.dialog.open)
+      canvas.focus({ preventScroll: true });
   }
   update(dt) {
     if (

@@ -72,9 +72,25 @@
           </p>
         </div>
         <span class="edition" data-i18n="version"
-          >alpha.0.1.0 · MULTIPLAYER GÜNCELLEMESİ</span
+          >alpha.0.1.1 · GARDIROP GÜNCELLEMESİ</span
         >
       </section>
+      <details class="release-notes" id="release-notes">
+        <summary data-i18n="release.title">alpha.0.1.1 · Neler değişti?</summary>
+        <div class="release-notes-body">
+          <p data-i18n="release.intro">Gardırobunu düzenle, yeni tam giysilerini seç.</p>
+          <ul>
+            <li data-i18n="release.customization">Özelleştirme: satın aldığın parçalar için ayrı gardırop, kategori filtreleri ve karakter önizlemesi.</li>
+            <li data-i18n="release.apply">Seçimlerini önce dene, Uygula ile kaydet. Satın almak artık giysiyi otomatik takmıyor.</li>
+            <li data-i18n="release.suits">24 yeni tam giysi eklendi. Koleksiyon toplam 28 tam giysi ve 64 ürüne ulaştı.</li>
+            <li data-i18n="release.design">Yeni modeller yuvarlak karaktere uygun, kolsuz ve bacaksız; Tam Giysi ayrı bir kategori.</li>
+            <li data-i18n="release.compatibility">Uyumlu giysi ve başlıkları birleştir. Tam giysiler ayrı başlıkla takılmıyor.</li>
+            <li data-i18n="release.prices">Tüm tam giysi fiyatları 3 katına çıkarıldı. Önceki satın alımlar ve bakiyeler korunuyor.</li>
+            <li data-i18n="release.multiplayer">Multiplayer gardırop bağlantısı Özelleştirmeyi açıyor; kaydettiğin görünümü odaya aktarabiliyorsun.</li>
+            <li data-i18n="release.languages">Yeni ekran ve güncelleme notları Türkçe/İngilizce destekli; dar ekran düzeni iyileştirildi.</li>
+          </ul>
+        </div>
+      </details>
       <div class="layout">
         <section
           class="machine"
@@ -109,6 +125,7 @@
                 ><strong id="wallet-total" class="total-value">0</strong>
               </div>
             </div>
+            <div class="wardrobe-buttons">
             <button
               id="shop-button"
               type="button"
@@ -117,6 +134,8 @@
             >
               Puan dükkânı
             </button>
+            <button id="customization-button" type="button" class="icon-button" data-i18n="customization.button">Özelleştirme</button>
+            </div>
           </div>
           <div
             id="challenge-hud"
@@ -571,55 +590,14 @@
           ><strong id="shop-total" class="shop-lifetime">0</strong>
         </div>
       </div>
+      <button id="shop-customization" type="button" class="icon-button shop-customization-link" data-i18n="customization.open">Özelleştirmeye git</button>
       <div class="shop-layout">
-        <aside class="shop-preview">
+        <aside class="shop-preview shop-preview-shop">
           <div class="shop-preview-main">
             <p class="shop-preview-label" data-i18n="shop.preview">ÖNİZLEME</p>
             <img id="shop-preview-image" alt="" />
             <h3 id="shop-preview-name"></h3>
             <p id="shop-preview-info"></p>
-          </div>
-          <div class="shop-equipped">
-            <p class="shop-preview-label" data-i18n="shop.slots">GARDIROBUN</p>
-            <div class="shop-slot">
-              <span data-i18n="shop.outfit">Kostüm</span>
-              <div>
-                <strong id="shop-equipped-outfit"></strong
-                ><button
-                  id="shop-remove-outfit"
-                  type="button"
-                  class="icon-button"
-                  data-shop-remove="outfit"
-                  data-i18n="shop.remove"
-                >
-                  Çıkar
-                </button>
-              </div>
-            </div>
-            <div class="shop-slot">
-              <span data-i18n="shop.head">Başlık</span>
-              <div>
-                <strong id="shop-equipped-head"></strong
-                ><button
-                  id="shop-remove-head"
-                  type="button"
-                  class="icon-button"
-                  data-shop-remove="head"
-                  data-i18n="shop.remove"
-                >
-                  Çıkar
-                </button>
-              </div>
-            </div>
-            <button
-              id="shop-reset"
-              type="button"
-              class="icon-button"
-              data-shop-remove="all"
-              data-i18n="shop.normal"
-            >
-              Normal modele dön
-            </button>
           </div>
           <button
             id="shop-preview-action"
@@ -654,14 +632,7 @@
               data-shop-category="suit"
               data-i18n="shop.suits"
             >
-              Tam Giysi</button
-            ><button
-              type="button"
-              class="icon-button"
-              data-shop-category="owned"
-              data-i18n="shop.collection"
-            >
-              Koleksiyonum
+              Tam Giysi
             </button>
           </div>
           <div id="shop-items" class="shop-items"></div>
@@ -678,6 +649,80 @@
         >
           Oyuna dön
         </button>
+      </div>
+    </dialog>
+    <dialog id="customization-dialog" class="shop-dialog customization-dialog" aria-labelledby="customization-title" aria-describedby="customization-description">
+      <div class="shop-top">
+        <div><p class="eyebrow" data-i18n="customization.kicker">KENDİ TARZINI OLUŞTUR</p><h2 id="customization-title" data-i18n="customization.title">Özelleştirme.</h2></div>
+        <button id="customization-close" type="button" class="icon-button" data-i18n="shop.close">Oyuna dön</button>
+      </div>
+      <p id="customization-description" class="shop-description" data-i18n="customization.description"></p>
+      <div class="customization-summary"><strong id="customization-count"></strong><button id="customization-shop" type="button" class="icon-button" data-i18n="customization.shop">Dükkâna git</button></div>
+      <div class="shop-layout">
+        <aside class="shop-preview">
+          <div class="shop-preview-main">
+            <p class="shop-preview-label" data-i18n="shop.preview">ÖNİZLEME</p>
+            <img id="customization-preview-image" alt="" />
+            <h3 id="customization-preview-name"></h3>
+          </div>
+          <div class="shop-equipped">
+            <p class="shop-preview-label" data-i18n="shop.slots">GARDIROBUN</p>
+            <div class="shop-slot">
+              <span data-i18n="shop.outfit">Kostüm</span>
+              <div>
+                <strong id="customization-equipped-outfit"></strong
+                ><button
+                  id="customization-remove-outfit"
+                  type="button"
+                  class="icon-button"
+                  data-custom-remove="outfit"
+                  data-i18n="shop.remove"
+                >
+                  Çıkar
+                </button>
+              </div>
+            </div>
+            <div class="shop-slot">
+              <span data-i18n="shop.head">Başlık</span>
+              <div>
+                <strong id="customization-equipped-head"></strong
+                ><button
+                  id="customization-remove-head"
+                  type="button"
+                  class="icon-button"
+                  data-custom-remove="head"
+                  data-i18n="shop.remove"
+                >
+                  Çıkar
+                </button>
+              </div>
+            </div>
+            <button
+              id="customization-reset"
+              type="button"
+              class="icon-button"
+              data-custom-remove="all"
+              data-i18n="shop.normal"
+            >
+              Normal modele dön
+            </button>
+          </div>
+
+        </aside>
+        <section>
+          <div class="shop-tabs" role="group" data-i18n-aria="customization.categories" aria-label="Koleksiyon kategorileri">
+            <button type="button" class="icon-button" data-custom-category="all" data-i18n="customization.all">Tümü</button>
+            <button type="button" class="icon-button" data-custom-category="outfit" data-i18n="shop.outfits">Kostümler</button>
+            <button type="button" class="icon-button" data-custom-category="head" data-i18n="shop.heads">Başlıklar</button>
+            <button type="button" class="icon-button" data-custom-category="suit" data-i18n="shop.suits">Tam Giysi</button>
+          </div>
+          <div id="customization-items" class="shop-items"></div>
+        </section>
+      </div>
+      <div class="shop-bottom customization-bottom">
+        <p id="customization-feedback" role="status" aria-live="polite"></p>
+        <button id="customization-apply" type="button" class="primary" data-i18n="customization.apply">Uygula</button>
+        <button id="customization-close-bottom" type="button" class="icon-button" data-i18n="shop.close">Oyuna dön</button>
       </div>
     </dialog>
     <dialog

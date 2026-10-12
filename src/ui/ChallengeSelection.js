@@ -28,6 +28,7 @@ export class ChallengeSelection extends GameComponent {
       this.game.missionMenu.dialog.open ||
       this.game.levels.dialog.open ||
       this.game.shop.dialog.open ||
+      this.game.customization.dialog.open ||
       this.game.settings.dialog.open
     )
       return;

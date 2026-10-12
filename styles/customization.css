@@ -1,0 +1,58 @@
+/* Gardırop alışverişten bağımsız bir alan; yeni seçenekler bu ekrana eklenir. */
+.wardrobe-buttons {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+#customization-button {
+  color: #abedc8;
+  border-color: #abedc84a;
+  padding: 10px 14px;
+  font-weight: 700;
+}
+.customization-dialog { border-color: #427b6a; }
+.customization-dialog .eyebrow { color: #abedc8; }
+.customization-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 22px;
+  padding: 14px 16px;
+  background: #abedc809;
+  border: 1px solid #abedc829;
+  border-radius: 10px;
+  color: #abedc8;
+  font-size: 12px;
+}
+#customization-preview-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  margin: 8px 0;
+  filter: drop-shadow(0 0 14px #abedc820);
+}
+#customization-preview-name { font-size: 18px; line-height: 1.5; overflow-wrap: anywhere; }
+#customization-reset { width: 100%; margin-top: 12px; justify-content: center; font-size: 9px; }
+.customization-item-state { color: #abedc8; font-size: 10px; padding: 10px 0 6px; }
+.customization-dialog .shop-item.previewed { border-color: #abedc8; }
+#customization-feedback { flex: 1; color: #abedc8; font-size: 11px; line-height: 1.7; margin: 0; }
+#customization-apply { padding: 10px 16px; font-size: 11px; background: #abedc8; }
+#customization-apply:disabled { opacity: 0.45; cursor: default; }
+.shop-customization-link { margin: 0 0 18px; color: #abedc8; }
+@media (max-width: 680px) {
+  .wallet-bar { flex-wrap: wrap; }
+  .wardrobe-buttons { width: 100%; }
+  .wardrobe-buttons > button { flex: 1; justify-content: center; }
+}
+@media (max-width: 490px) {
+  .shop-preview-shop { display: block; }
+  .shop-preview-shop #shop-preview-image { width: 140px; margin-inline: auto; }
+  #customization-button { padding: 9px; font-size: 9px; }
+  #customization-preview-name { font-size: 13px; }
+  .customization-bottom { flex-wrap: wrap; }
+  #customization-feedback { flex-basis: 100%; }
+  .customization-bottom button { flex: 1; justify-content: center; }
+}

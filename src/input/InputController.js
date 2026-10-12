@@ -34,6 +34,7 @@ export class InputController extends GameComponent {
           event.target.id === "home-button" ||
           event.target.id === "resume-game" ||
           event.target.id === "shop-button" ||
+          event.target.id === "customization-button" ||
           event.target.id === "settings-button" ||
           event.target.id === "missions-button" ||
           event.target.id === "skip-transition" ||
@@ -43,7 +44,7 @@ export class InputController extends GameComponent {
           event.target.dataset.language)
       )
         return;
-      if (this.game.shop.dialog.open) return;
+      if (this.game.shop.dialog.open || this.game.customization.dialog.open) return;
       if (this.game.levels.dialog.open) {
         if (
           event.key === "Enter" &&
@@ -167,6 +168,7 @@ export class InputController extends GameComponent {
       "click",
       this.game.arcade.finishTransition,
     );
+    this.game.customization.bindEvents();
     $("shop-button").addEventListener("click", this.game.shop.open);
     $("shop-close").addEventListener("click", this.game.shop.close);
     $("shop-close-bottom").addEventListener("click", this.game.shop.close);
@@ -185,16 +187,9 @@ export class InputController extends GameComponent {
         this.game.shop.chooseCategory(category.dataset.shopCategory);
         return;
       }
-      const remove = event.target.closest("[data-shop-remove]");
-      if (remove) {
-        this.game.shop.remove(remove.dataset.shopRemove);
-        return;
-      }
       const action = event.target.closest("[data-shop-action]");
       if (action && !action.disabled)
-        this.game.shop[
-          action.dataset.shopAction === "buy" ? "purchase" : "equip"
-        ](action.dataset.shopId);
+        this.game.shop.purchase(action.dataset.shopId);
     });
     window.addEventListener("storage", (event) => {
       if (event.key === this.game.missions.key) {
@@ -205,6 +200,7 @@ export class InputController extends GameComponent {
         this.game.wallet.refresh();
         this.game.ui.lastPlayerSkin = "";
         if (this.game.shop.dialog.open) this.game.shop.render();
+        if (this.game.customization.dialog.open) this.game.customization.render();
         if (this.game.missionMenu.dialog.open) this.game.missionMenu.render();
         this.game.ui.updateHUD();
       }

@@ -22,6 +22,7 @@ import { SaveManager } from "../storage/SaveManager.js";
 import { GameUI } from "../ui/GameUI.js";
 import { LevelSelection } from "../ui/LevelSelection.js";
 import { PointShop } from "../ui/PointShop.js";
+import { CustomizationMenu } from "../ui/CustomizationMenu.js";
 import { SettingsMenu } from "../ui/SettingsMenu.js";
 import { ArcadePresentation } from "../rendering/ArcadePresentation.js";
 
@@ -67,6 +68,7 @@ export class Game extends GameComponent {
     this.levels = new LevelSelection(this);
     this.wallet = new PointWallet(this);
     this.shop = new PointShop(this);
+    this.customization = new CustomizationMenu(this);
     this.settings = new SettingsMenu(this);
     this.arcade = new ArcadePresentation(this);
     this.challenges = new ChallengeMode(this);
@@ -232,6 +234,7 @@ export class Game extends GameComponent {
       loadoutDialog.open ||
       this.levels.dialog.open ||
       this.shop.dialog.open ||
+      this.customization.dialog.open ||
       this.settings.dialog.open ||
       this.challengeMenu.dialog.open ||
       this.missionMenu.dialog.open
@@ -274,6 +277,7 @@ export class Game extends GameComponent {
     if (
       this.settings.dialog.open ||
       this.shop.dialog.open ||
+      this.customization.dialog.open ||
       this.missionMenu.dialog.open
     )
       return;
