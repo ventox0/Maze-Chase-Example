@@ -668,3 +668,169 @@ footer {
 .lan-wallet strong {
   color: #ffe15b;
 }
+/* Lobi seçimleri, bağlantı şeridi ve maç raporu */
+.lobby-options {
+  border-top: 1px solid var(--lan-border);
+  margin-top: 18px;
+  padding-top: 8px;
+}
+.appearance-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+.appearance-choice img {
+  object-fit: contain;
+  background: #ffffff06;
+  border-radius: 14px;
+}
+.appearance-choice div {
+  display: grid;
+  gap: 5px;
+}
+.roster-avatar {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+}
+.roster-row {
+  grid-template-columns: 46px 8px minmax(0, 1fr) auto;
+}
+.network-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  color: var(--lan-muted);
+  font-size: 12px;
+  padding: 0 0 12px;
+}
+[data-quality="good"] {
+  color: #91eb89;
+}
+[data-quality="slow"] {
+  color: #ffbe71;
+}
+.reconnect-panel {
+  border: 1px solid #ffbe7155;
+  background: #ffbe7110;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.reconnect-panel p {
+  margin: 8px 0;
+  font-size: 13px;
+  color: var(--lan-muted);
+}
+.reconnect-panel progress {
+  width: 100%;
+  height: 8px;
+  accent-color: #ffbe71;
+}
+.match-results {
+  border: 1px solid var(--lan-border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 20px;
+  background: #ffffff03;
+}
+.match-results h3 {
+  margin: 0 0 8px;
+}
+.results-scroll {
+  overflow-x: auto;
+}
+#results-table {
+  border-collapse: collapse;
+  width: 100%;
+  text-align: left;
+  font-size: 12px;
+}
+#results-table th,
+#results-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--lan-border);
+  white-space: nowrap;
+}
+#results-table th {
+  color: var(--lan-muted);
+  font-weight: 500;
+}
+.arena-message.lobby-preview {
+  inset: auto 14px 14px;
+  padding: 12px;
+  border: 1px solid var(--lan-border);
+  border-radius: 12px;
+  background: #0b0b17e6;
+  backdrop-filter: none;
+}
+.arena-message.lobby-preview strong {
+  font-size: 18px;
+}
+.arena-message.lobby-preview p {
+  margin: 4px 0 0;
+}
+.network-details {
+  padding: 0 24px 12px;
+}
+@media (max-width: 600px) {
+  .network-details {
+    padding-inline: 14px;
+  }
+  .roster-row {
+    grid-template-columns: 40px 8px minmax(0, 1fr) auto;
+    gap: 6px;
+  }
+  .roster-avatar {
+    width: 40px;
+    height: 40px;
+  }
+}
+.room-privacy {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+}
+.room-privacy input {
+  width: auto;
+}
+.room-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 12px 0;
+}
+.room-list-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--lan-border);
+  border-radius: 10px;
+  margin: 8px 0;
+}
+.room-list-card .muted {
+  flex-basis: 100%;
+  font-size: 12px;
+}
+.kick-player {
+  font-size: 11px;
+  padding: 5px 8px;
+  color: #ffadad;
+  grid-column: 3 / 5;
+  justify-self: end;
+}
+.spectator-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--lan-muted);
+  margin: 8px 0;
+}
+.header-end {
+  flex-wrap: wrap;
+}

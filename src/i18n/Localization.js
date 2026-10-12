@@ -3,6 +3,7 @@ import { GameComponent } from "../core/GameComponent.js";
 import { GHOSTS } from "../data/ghosts.js";
 import { FLAGS } from "./flags.js";
 import { LANGUAGE_KEY, TRANSLATIONS } from "./messages.js";
+import { profileStorage } from "../account/ProfileStorage.js";
 
 // Türkçe/İngilizce çeviriler ve kalıcı dil tercihi.
 export class Localization extends GameComponent {
@@ -12,6 +13,8 @@ export class Localization extends GameComponent {
   }
 
   t(key, values = {}) {
+    if (profileStorage.user && TRANSLATIONS[this.language][key + ".account"])
+      key += ".account";
     return (
       TRANSLATIONS[this.language][key] ||
       TRANSLATIONS.tr[key] ||

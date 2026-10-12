@@ -215,6 +215,14 @@ export default {
   "save.continue": "Load save · Level {level}",
   "save.hint": "Press K to save · Automatic checkpoint after every 5 levels",
   "save.manualDone": "Saved · Level {level} · Stored in this browser",
+  "save.manualDone.account":
+    "Saved · Level {level} · Check account sync status",
+  "save.note.account":
+    "Manual saves and checkpoints sync to your account. Check your account's sync status before switching devices.",
+  "shop.note.account":
+    "Balance and collection sync to your account. Ability models take over while their effects are active.",
+  "missions.hint.account":
+    "Progress syncs to your account. Rewards go to your wallet and do not change your game score.",
   "save.autoDone": "Checkpoint saved · Ready for level {level}",
   "save.loaded": "Save loaded · Level {level}",
   "save.error":

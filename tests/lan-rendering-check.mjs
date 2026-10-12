@@ -349,3 +349,26 @@ console.log(
 console.log(
   "PASS large Canvas, distant pellets, central bonus and close-up camera clamping",
 );
+
+{
+  const { drawPlayer } = await import("../src/rendering/ArcadeDrawing.js");
+  const composed = recordingCanvas();
+  composed.width = composed.height = 192;
+  const output = recordingCanvas();
+  drawPlayer(
+    output.getContext("2d"),
+    { x: 20, y: 20 },
+    { angle: 0, scaleX: 1, scaleY: 1, bob: 0, mouth: 0.2 },
+    composed,
+    "right",
+    null,
+  );
+  assert.ok(
+    output.log.some(
+      (entry) => entry[0] === "drawImage" && entry[1][0] === "[canvas]",
+    ),
+  );
+}
+console.log(
+  "PASS composed costume Canvas is drawn as a player sprite instead of the loading fallback",
+);

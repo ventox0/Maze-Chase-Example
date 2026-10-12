@@ -1,3 +1,4 @@
+import { profileStorage } from "../account/ProfileStorage.js";
 import { randomPowerSeed } from "../gameplay/power-pellets.js";
 import { AudioManager } from "../audio/AudioManager.js";
 import { loadoutDialog } from "./dom.js";
@@ -78,11 +79,11 @@ export class Game extends GameComponent {
   start() {
     // Depolama kapalıyken de oyun açılır; veri yalnızca başlangıçta okunur.
     try {
-      const saved = localStorage.getItem(LANGUAGE_KEY);
+      const saved = profileStorage.getItem(LANGUAGE_KEY);
       if (saved === "tr" || saved === "en") this.i18n.language = saved;
     } catch (_) {}
     try {
-      const stored = Number(localStorage.getItem("maze-chaser-high-score"));
+      const stored = Number(profileStorage.getItem("maze-chaser-high-score"));
       this.highScore = Number.isFinite(stored) ? Math.max(0, stored) : 0;
     } catch (_) {}
     this.challenges.load();
@@ -291,7 +292,7 @@ export class Game extends GameComponent {
       this.newRecord = true;
       if (this.challenges.active) this.challenges.best = this.highScore;
       try {
-        localStorage.setItem(
+        profileStorage.setItem(
           this.challenges.active
             ? CHALLENGE_HIGH_KEY
             : "maze-chaser-high-score",

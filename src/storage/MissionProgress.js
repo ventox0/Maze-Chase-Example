@@ -1,3 +1,4 @@
+import { profileStorage } from "../account/ProfileStorage.js";
 import { GameComponent } from "../core/GameComponent.js";
 import {
   MISSIONS,
@@ -58,7 +59,7 @@ export class MissionProgress extends GameComponent {
   }
   load() {
     try {
-      const raw = localStorage.getItem(this.key);
+      const raw = profileStorage.getItem(this.key);
       const source = raw && raw.length < 128000 ? JSON.parse(raw) : null;
       this.profile = this.valid(source) ? source : this.empty();
     } catch (_) {
@@ -74,7 +75,7 @@ export class MissionProgress extends GameComponent {
   refresh() {
     if (this.storageUnavailable) return;
     try {
-      const raw = localStorage.getItem(this.key);
+      const raw = profileStorage.getItem(this.key);
       const source = raw && raw.length < 128000 ? JSON.parse(raw) : null;
       if (this.valid(source)) {
         source.stats.bestRunScore = Math.max(
@@ -102,7 +103,7 @@ export class MissionProgress extends GameComponent {
       if (!protectedIds.has(id)) delete this.profile.runs[id];
     }
     try {
-      localStorage.setItem(this.key, JSON.stringify(this.profile));
+      profileStorage.setItem(this.key, JSON.stringify(this.profile));
       this.storageUnavailable = false;
     } catch (_) {
       this.storageUnavailable = true;

@@ -1,3 +1,4 @@
+import { profileStorage } from "../account/ProfileStorage.js";
 import { GameComponent } from "../core/GameComponent.js";
 import {
   CHALLENGE_HIGH_KEY,
@@ -18,7 +19,7 @@ export class ChallengeMode extends GameComponent {
   }
   load() {
     try {
-      const score = Number(localStorage.getItem(CHALLENGE_HIGH_KEY));
+      const score = Number(profileStorage.getItem(CHALLENGE_HIGH_KEY));
       this.best = Number.isSafeInteger(score) && score >= 0 ? score : 0;
     } catch (_) {}
   }

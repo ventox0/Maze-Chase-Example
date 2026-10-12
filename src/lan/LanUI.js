@@ -1,3 +1,5 @@
+import { profileStorage } from "../account/ProfileStorage.js";
+import { LanPanels } from "./LanPanels.js";
 import { LanRewards } from "./LanRewards.js";
 import {
   LAN_COLS,
@@ -41,7 +43,22 @@ export class LanUI {
     this.client = new LanClient(
       (state) => this.accept(state),
       (status) => this.connection(status),
+      (metrics) => this.panels?.renderNetwork(metrics),
     );
+    this.rewards.client = this.client;
+    if (profileStorage.user) {
+      $("player-name").value = profileStorage.user.username;
+      $("player-name").disabled = true;
+    }
+    this.panels = new LanPanels(this);
+    profileStorage.listeners.add(() => {
+      this.rewards.wallet.load();
+      this.renderWallet();
+    });
+    this.renderer.onAppearanceReady = () => {
+      this.rosterKey = "";
+      if (this.state) this.render();
+    };
     this.bind();
     this.translate();
     void this.initialize();
@@ -86,6 +103,7 @@ export class LanUI {
       rows: LAN_ROWS,
       ghosts: MAX_LAN_GHOSTS,
     });
+    this.panels?.translate();
     this.modeDescription();
     this.rosterKey = "";
     this.scoreKey = "";
@@ -128,20 +146,60 @@ export class LanUI {
     if (!this.info?.enabled) return;
     try {
       const data = await this.client.request("/api/lan/rooms");
+      const mode = $("filter-mode").value || "all",
+        status = $("filter-status").value || "all";
+      const rooms = data.rooms.filter(
+        (room) =>
+          (mode === "all" || room.mode === mode) &&
+          (status === "all" ||
+            (status === "lobby" && room.state === "lobby") ||
+            (status === "active" && room.state !== "lobby") ||
+            (status === "available" &&
+              room.state === "lobby" &&
+              room.players < 4)),
+      );
       $("rooms").replaceChildren(
-        ...(data.rooms.length
-          ? data.rooms.map((room) => {
-              const button = el("button", "room-list-item");
-              button.type = "button";
-              button.append(
-                el("strong", "", room.code),
-                el("span", "", this.t(room.mode) + " · " + room.players + "/4"),
+        ...(rooms.length
+          ? rooms.map((room) => {
+              const row = el("div", "room-list-card");
+              row.append(
+                el("strong", "", (room.locked ? "🔒 " : "") + room.code),
+                el(
+                  "span",
+                  "muted",
+                  this.t(room.mode) +
+                    " · " +
+                    room.players +
+                    "/4 · " +
+                    this.t(room.state === "lobby" ? "waiting" : "playing"),
+                ),
               );
-              button.addEventListener("click", () => {
-                $("room-code").value = room.code;
-                void this.enter("join");
-              });
-              return button;
+              for (const role of ["player", "spectator"]) {
+                if (
+                  role === "player" &&
+                  (room.players >= 4 || room.state !== "lobby")
+                )
+                  continue;
+                if (role === "spectator" && room.spectators >= 8) continue;
+                const button = el(
+                  "button",
+                  "quiet",
+                  this.t(role === "player" ? "join" : "watchRoom"),
+                );
+                button.type = "button";
+                button.addEventListener("click", () => {
+                  $("room-code").value = room.code;
+                  $("join-role").value = role;
+                  if (room.locked && !$("join-password").value) {
+                    this.feedback("roomPasswordNeeded");
+                    $("join-password").focus();
+                    return;
+                  }
+                  void this.enter("join");
+                });
+                row.append(button);
+              }
+              return row;
             })
           : [el("p", "muted", this.t("noRooms"))]),
       );
@@ -158,6 +216,7 @@ export class LanUI {
     );
   }
   connection(status, clear = true) {
+    const previous = this.status;
     this.status = status;
     this.renderer.networkConnected = status === "connected";
     $("connection").textContent = this.t(status);
@@ -165,8 +224,14 @@ export class LanUI {
       "live",
       ["online", "connected"].includes(status),
     );
-    if (["roomMissing", "sessionExpired"].includes(status) && clear) {
+    if (
+      ["roomMissing", "sessionExpired", "kicked", "loginRequired"].includes(
+        status,
+      ) &&
+      clear
+    ) {
       this.state = null;
+      this.panels?.reset();
       $("spectator-controls").hidden = true;
       this.renderer.reset();
       this.rosterKey = "";
@@ -182,6 +247,9 @@ export class LanUI {
       this.feedback(status);
       this.buttons();
     }
+    this.panels?.renderNetwork();
+    if (status === "connected" && previous === "reconnecting")
+      this.feedback("connectionRestored");
     if (status === "reconnecting") this.feedback("networkLost");
     if (this.state) this.render();
   }
@@ -208,8 +276,17 @@ export class LanUI {
         room: $("room-code").value.trim().toUpperCase(),
         mode: document.querySelector("[name=mode]:checked").value,
         loadout: this.loadout("setup"),
+        appearance: this.rewards.wallet.profile.equipped,
+        role: $("join-role").value || "player",
+        password:
+          type === "create"
+            ? $("create-password").value
+            : $("join-password").value,
+        listed: !$("hide-room").checked,
       });
       $("feedback").textContent = "";
+      $("create-password").value = "";
+      $("join-password").value = "";
       this.renderer.myId = this.client.session.id;
     } catch (error) {
       this.feedback(error.message);
@@ -256,9 +333,24 @@ export class LanUI {
   render() {
     const s = this.state;
     if (!s) return;
-    const me = s.players.find((p) => p.id === this.client.session?.id);
+    const me =
+      s.players.find((p) => p.id === this.client.session?.id) ||
+      (s.viewer?.role === "spectator"
+        ? {
+            id: s.viewer.id,
+            role: "spectator",
+            name: s.spectators.find((p) => p.id === s.viewer.id)?.name || "",
+            lives: 0,
+            score: 0,
+            ready: false,
+            loadout: { q: "jump", e: "magnet" },
+            cooldowns: { q: 0, e: 0 },
+            connected: true,
+          }
+        : null);
     if (!me) return;
     const owner = s.ownerId === me.id,
+      spectator = me.role === "spectator",
       lobby = s.state === "lobby",
       connected = this.status === "connected";
     $("setup").hidden = true;
@@ -272,7 +364,9 @@ export class LanUI {
     const rosterKey = JSON.stringify([
       this.language,
       s.ownerId,
-      s.players.map((p) => [p.id, p.ready, p.connected, p.name]),
+      this.status,
+      s.players.map((p) => [p.id, p.ready, p.connected, p.name, p.appearance]),
+      s.spectators,
     ]);
     if (rosterKey !== this.rosterKey) {
       this.rosterKey = rosterKey;
@@ -281,7 +375,13 @@ export class LanUI {
           const row = el("div", "roster-row"),
             dot = el("span", "player-dot");
           dot.style.background = p.color;
+          const avatar = el("img", "roster-avatar");
+          avatar.alt = "";
+          avatar.src =
+            this.renderer.appearance?.source(p.appearance) ||
+            "./assets/players/normal.webp";
           row.append(
+            avatar,
             dot,
             el(
               "span",
@@ -302,14 +402,25 @@ export class LanUI {
               ),
             ),
           );
+          if (owner && p.id !== me.id) {
+            const kick = el("button", "kick-player", this.t("kick"));
+            kick.type = "button";
+            kick.disabled = !connected;
+            kick.addEventListener(
+              "click",
+              () => void this.send("kick", { target: p.id }),
+            );
+            row.append(kick);
+          }
           return row;
         }),
       );
     }
-    $("room-loadout").disabled = !lobby || !connected;
+    $("room-loadout").hidden = spectator;
+    $("room-loadout").disabled = spectator || !lobby || !connected;
     $("room-q").value = me.loadout.q;
     $("room-e").value = me.loadout.e;
-    $("ready").hidden = !lobby;
+    $("ready").hidden = !lobby || spectator;
     $("ready").disabled = !connected;
     $("ready").textContent = this.t(me.ready ? "unready" : "ready");
     $("ready").setAttribute("aria-pressed", String(me.ready));
@@ -322,16 +433,45 @@ export class LanUI {
     $("next").disabled = !connected;
     $("rematch").hidden = !owner || s.state !== "finished";
     $("rematch").disabled = !connected;
+    const spectatorListKey = JSON.stringify([
+      this.language,
+      s.spectators,
+      owner,
+      connected,
+    ]);
+    if (this.spectatorListKey !== spectatorListKey) {
+      this.spectatorListKey = spectatorListKey;
+      $("spectators-list").replaceChildren(
+        ...(s.spectators || []).map((p) => {
+          const row = el(
+            "div",
+            "spectator-row",
+            p.name + " · " + this.t("watchRole"),
+          );
+          if (owner) {
+            const kick = el("button", "kick-player", this.t("kick"));
+            kick.addEventListener(
+              "click",
+              () => void this.send("kick", { target: p.id }),
+            );
+            row.append(kick);
+          }
+          return row;
+        }),
+      );
+    }
     $("room-hint").textContent = this.t(
-      lobby
-        ? owner
-          ? "hostHint"
-          : "guestHint"
-        : s.state === "roundComplete"
-          ? "roundHint"
-          : s.state === "finished"
-            ? "finishedHint"
-            : "playingHint",
+      spectator
+        ? "spectatorHint"
+        : lobby
+          ? owner
+            ? "hostHint"
+            : "guestHint"
+          : s.state === "roundComplete"
+            ? "roundHint"
+            : s.state === "finished"
+              ? "finishedHint"
+              : "playingHint",
     );
     $("match-title").textContent = this.t(
       lobby
@@ -345,11 +485,11 @@ export class LanUI {
               : "playing",
     );
     $("points-kind").textContent = this.t(
-      s.mode === "coop" ? "teamPoints" : "yourPoints",
+      s.mode === "coop" || spectator ? "teamPoints" : "yourPoints",
     );
     $("level-label").textContent = this.t("level", { level: s.level });
     $("points-label").textContent = (
-      s.mode === "coop" ? s.teamScore : me.score
+      s.mode === "coop" || spectator ? s.teamScore : me.score
     ).toLocaleString(this.language === "tr" ? "tr-TR" : "en-US");
     $("pellets-label").textContent = this.t("pellets", { count: s.pellets });
     $("power-label").textContent =
@@ -363,8 +503,7 @@ export class LanUI {
     let message = "",
       detail = "";
     if (!connected) {
-      message = this.t("reconnecting");
-      detail = this.t("networkLost");
+      // Yeniden bağlanma şeridi ayrı gösterilir; haritayı karartmaz.
     } else if (lobby) {
       message = this.t("waiting");
       detail = this.t("startMessage");
@@ -385,8 +524,12 @@ export class LanUI {
       }
       detail = this.t("finishedHint");
     }
+    this.panels?.renderLobby(s, me, connected);
+    this.panels?.renderResults(s);
+    this.panels?.renderNetwork();
     this.renderSpectator(s, me);
     const overlay = $("arena-message");
+    overlay.classList.toggle("lobby-preview", lobby && connected);
     overlay.hidden = !message && !detail;
     if (message || detail)
       overlay.replaceChildren(el("strong", "", message), el("p", "", detail));
@@ -549,6 +692,8 @@ export class LanUI {
     });
     for (const radio of document.querySelectorAll("[name=mode]"))
       radio.addEventListener("change", () => this.modeDescription());
+    for (const id of ["filter-mode", "filter-status"])
+      $(id).addEventListener("change", () => void this.renderRooms());
     $("create").addEventListener("click", () => void this.enter("create"));
     $("join").addEventListener("click", () => void this.enter("join"));
     $("room-code").addEventListener("input", () => {
@@ -564,6 +709,7 @@ export class LanUI {
         await this.client.leave();
       } catch {}
       this.state = null;
+      this.panels?.reset();
       $("spectator-controls").hidden = true;
       this.renderer.reset();
       this.rosterKey = "";
@@ -613,13 +759,18 @@ export class LanUI {
         $("lan-canvas").focus({ preventScroll: true });
       });
     window.addEventListener("keydown", (event) => {
+      if (document.getElementById("account-dialog")?.open) return;
       if (
         ["INPUT", "SELECT", "TEXTAREA", "BUTTON", "A"].includes(
           event.target.tagName,
         )
       )
         return;
-      if (this.state?.state !== "playing" || this.status !== "connected")
+      if (
+        this.state?.viewer?.role === "spectator" ||
+        this.state?.state !== "playing" ||
+        this.status !== "connected"
+      )
         return;
       const key = event.key.toLowerCase(),
         dir = {

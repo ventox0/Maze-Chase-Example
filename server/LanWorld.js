@@ -1,3 +1,8 @@
+import {
+  LAN_MAP_OPTIONS,
+  lanBalance,
+  normalizeAppearance,
+} from "../src/data/lan-options.js";
 import { randomUUID } from "node:crypto";
 import { randomPowerSeed } from "../src/gameplay/power-pellets.js";
 import { MovementSystem } from "../src/gameplay/MovementSystem.js";
@@ -50,6 +55,8 @@ const abilityState = () => ({
 export class LanWorld {
   constructor(mode = "coop") {
     this.mode = mode;
+    this.mapChoice = "streets";
+    this.balance = lanBalance(2);
     this.matchId = randomUUID();
     this.matchStartedAt = Date.now();
     this.players = new Map();
@@ -101,6 +108,8 @@ export class LanWorld {
       abilities: abilityState(),
       lastSeq: 0,
       walletRewards: [],
+      appearance: { outfit: null, head: null },
+      stats: this.emptyStats(),
     };
     p.entity = {
       ...this.movement.actor(
@@ -112,6 +121,12 @@ export class LanWorld {
     };
     this.players.set(id, p);
     return p;
+  }
+  emptyStats() {
+    return { pellets: 0, powerPellets: 0, ghosts: 0, deaths: 0, abilities: 0 };
+  }
+  setAppearance(p, value) {
+    p.appearance = normalizeAppearance(value);
   }
   start() {
     this.matchId = randomUUID();
@@ -125,11 +140,16 @@ export class LanWorld {
     for (const p of this.players.values()) {
       p.score = 0;
       p.lives = 3;
+      p.stats = this.emptyStats();
     }
     this.loadRound();
   }
   loadRound() {
-    this.maze.grid = createLanMap(this.level, randomPowerSeed());
+    this.balance = lanBalance(this.players.size);
+    this.maze.grid = createLanMap(this.level, randomPowerSeed(), {
+      mode: this.mode,
+      map: this.mapChoice,
+    });
     this.maze.phase = "maze";
     this.powerUntil = 0;
     this.roundTime = 0;
@@ -144,11 +164,19 @@ export class LanWorld {
     this.ghosts.entities = lanGhosts(this.level).map((g, index) => ({
       ...g,
       ...this.movement.actor(
-        LIFE_PELLET.col - 1 + (index % 3),
-        LIFE_PELLET.row - 2 + Math.floor(index / 3),
+        this.mode === "race" && index >= 3
+          ? LIFE_PELLET.col + 1 - (index % 3)
+          : LIFE_PELLET.col - 1 + (index % 3),
+        this.mode === "race"
+          ? LIFE_PELLET.row + (index < 3 ? -1 : 1)
+          : LIFE_PELLET.row - 2 + Math.floor(index / 3),
       ),
       index,
-      releaseAt: this.gameTime + 3 + index,
+      releaseAt:
+        this.gameTime +
+        3 +
+        (this.mode === "race" ? index % 3 : index) *
+          this.balance.releaseSpacing,
       immuneUntil: 0,
       skillEpoch: this.gameTime + 3,
       skillReadyAt: this.gameTime + 8,
@@ -219,6 +247,7 @@ export class LanWorld {
       }
       return this.jump(p);
     }
+    p.stats.abilities++;
     a[id + "Until"] = this.gameTime + ABILITIES[id].duration;
     a[id + "ReadyAt"] = this.gameTime + ABILITIES[id].cooldown;
     this.event("ability", p, { ability: id });
@@ -256,6 +285,7 @@ export class LanWorld {
     };
     p.entity.dir = dir;
     p.entity.moving = true;
+    p.stats.abilities++;
     a.jumpReadyAt = this.gameTime + ABILITIES.jump.cooldown;
     this.event("ability", p, { ability: "jump" });
     return true;
@@ -288,6 +318,7 @@ export class LanWorld {
     this.maze.grid[row][col] = 0;
     this.pellets--;
     this.mapRevision++;
+    p.stats[value === 3 ? "powerPellets" : "pellets"]++;
     this.credit(p, value === 3 ? 50 : 10);
     if (value === 3) {
       this.powerUntil = this.gameTime + POWER_DURATION;
@@ -368,6 +399,7 @@ export class LanWorld {
     }
   }
   updateGhosts(dt, players) {
+    const pressure = new Map();
     for (const ghost of this.ghosts.entities) {
       if (this.gameTime < ghost.releaseAt) continue;
       const targets = players.filter((p) => this.gameTime >= p.respawnUntil);
@@ -376,16 +408,25 @@ export class LanWorld {
       const target = targets.reduce((best, p) => {
         const a = this.position(p),
           b = this.position(best);
-        return Math.hypot(pos.x - a.x, pos.y - a.y) <
-          Math.hypot(pos.x - b.x, pos.y - b.y)
+        return Math.hypot(pos.x - a.x, pos.y - a.y) +
+          (pressure.get(p.id) || 0) * TILE * 5 <
+          Math.hypot(pos.x - b.x, pos.y - b.y) +
+            (pressure.get(best.id) || 0) * TILE * 5
           ? p
           : best;
       });
+      pressure.set(target.id, (pressure.get(target.id) || 0) + 1);
       this.context(target);
-      if (this.ghosts.updateGhostSkill(ghost, dt)) continue;
+      const skillReady = ghost.skillReadyAt;
+      const skillActive = this.ghosts.updateGhostSkill(ghost, dt);
+      if (ghost.skillReadyAt > skillReady)
+        ghost.skillReadyAt =
+          this.gameTime +
+          (ghost.skillReadyAt - this.gameTime) * this.balance.skillCooldown;
+      if (skillActive) continue;
       this.movement.move(
         ghost,
-        this.ghosts.ghostSpeed(ghost) * dt,
+        this.ghosts.ghostSpeed(ghost) * this.balance.ghostSpeed * dt,
         this.ghosts.chooseGhostDirection,
       );
     }
@@ -399,11 +440,12 @@ export class LanWorld {
         const gpos = this.movement.position(ghost);
         if (Math.hypot(pos.x - gpos.x, pos.y - gpos.y) >= TILE * 0.7) continue;
         if (this.ghosts.ghostFrightened(ghost)) {
+          p.stats.ghosts++;
           this.credit(p, 200);
           this.event("ghost", p, { ghostId: ghost.id, x: gpos.x, y: gpos.y });
           Object.assign(ghost, {
             col: LIFE_PELLET.col,
-            row: LIFE_PELLET.row - 2,
+            row: this.mode === "race" ? LIFE_PELLET.row : LIFE_PELLET.row - 2,
             dir: "up",
             progress: 0,
             moving: false,
@@ -417,6 +459,7 @@ export class LanWorld {
           this.gameTime >= p.abilities.shieldUntil
         ) {
           p.lives--;
+          p.stats.deaths++;
           this.event("hurt", p);
           this.respawn(p);
           break;
@@ -494,6 +537,12 @@ export class LanWorld {
   snapshot() {
     return {
       mode: this.mode,
+      matchId: this.matchId,
+      mapChoice: this.mapChoice,
+      mapStyleLevel:
+        LAN_MAP_OPTIONS.find((m) => m.id === this.mapChoice)?.styleLevel ||
+        this.level,
+      balance: this.balance,
       cols: COLS,
       rows: ROWS,
       state: this.state,
@@ -518,6 +567,8 @@ export class LanWorld {
         ready: p.ready,
         connected: p.connected,
         loadout: p.loadout,
+        appearance: p.appearance,
+        stats: { ...p.stats },
         score: p.score,
         lives: p.lives,
         dir: p.entity.dir,

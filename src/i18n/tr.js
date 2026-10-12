@@ -214,6 +214,14 @@ export default {
   "save.continue": "Kaydı yükle · Bölüm {level}",
   "save.hint": "K ile elle kaydet · Otomatik kayıt her 5 bölümün sonunda",
   "save.manualDone": "Kaydedildi · Bölüm {level} · Bu tarayıcıda saklandı",
+  "save.manualDone.account":
+    "Kaydedildi · Bölüm {level} · Hesabının eşitleme durumunu kontrol et",
+  "save.note.account":
+    "Elle kayıt ve checkpoint hesabına eşitlenir. Cihaz değiştirmeden önce hesabının eşitleme durumunu kontrol et.",
+  "shop.note.account":
+    "Bakiye ve koleksiyon hesabına eşitlenir. Yetenek modelleri etki süresince görünümünü değiştirir.",
+  "missions.hint.account":
+    "İlerleme hesabına eşitlenir. Ödüller cüzdanına eklenir; oyun skorunu değiştirmez.",
   "save.autoDone": "Otomatik kayıt alındı · Bölüm {level} hazır",
   "save.loaded": "Kayıt yüklendi · Bölüm {level}",
   "save.error":

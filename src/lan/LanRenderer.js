@@ -1,3 +1,4 @@
+import { LanAppearance } from "./LanAppearance.js";
 import { TILE } from "../data/config.js";
 import { createLanMap } from "../gameplay/lan-map.js";
 import { SPRITE_SOURCES, GHOST_ATLAS_SOURCES } from "../data/assets.js";
@@ -21,6 +22,7 @@ export class LanRenderer {
   constructor(canvas) {
     this.canvas = canvas;
     this.previewMap = createLanMap(1);
+    this.appearance = new LanAppearance(() => this.onAppearanceReady?.());
     this.width = 0;
     this.height = 0;
     this.ctx = canvas.getContext("2d");
@@ -218,7 +220,7 @@ export class LanRenderer {
   draw(state, dt, time) {
     const c = this.ctx,
       grid = state?.map || this.previewMap,
-      style = mapStyle(state?.level || 1);
+      style = mapStyle(state?.mapStyleLevel || state?.level || 1);
     this.configureCanvas(grid);
     const width = this.width,
       height = this.height,
@@ -335,7 +337,10 @@ export class LanRenderer {
         c,
         player,
         animation.pose(this.reduced),
-        this.players[player.skin],
+        player.skin === "normal" &&
+          (player.appearance?.outfit || player.appearance?.head)
+          ? this.appearance.sprite(player.appearance)
+          : this.players[player.skin],
         player.dir,
         player.jumpVisual,
         alpha,

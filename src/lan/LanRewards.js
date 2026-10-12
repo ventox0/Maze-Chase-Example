@@ -1,7 +1,8 @@
+import { profileStorage } from "../account/ProfileStorage.js";
 import { PointWallet } from "../storage/PointWallet.js";
 
-// LAN oturumu normal cüzdan biçimini kullanır; sunucunun kişisel makbuzları
-// tarayıcıdaki aynı mağaza bakiyesine eklenir. Aynı origin'deki sekmeler kilitlenir.
+// Hesap ödülleri sunucuda, misafir ödülleri yerel cüzdanda saklanır.
+// Aynı origin'deki sekmeler eşzamanlı talepleri kilitler.
 export class LanRewards {
   constructor() {
     this.wallet = new PointWallet({ shop: { feedback() {} } });
@@ -9,7 +10,28 @@ export class LanRewards {
     this.queue = Promise.resolve();
   }
   settle(receipts = []) {
-    const claim = () => {
+    const claim = async () => {
+      if (
+        profileStorage.user &&
+        this.client?.session &&
+        this.client.session.role !== "spectator" &&
+        receipts.length
+      ) {
+        await profileStorage.flush();
+        const result = await this.client.request(
+          "/api/lan/rewards?room=" +
+            encodeURIComponent(this.client.session.room),
+          null,
+          true,
+        );
+        profileStorage.update(result.profile);
+        this.wallet.load();
+        return {
+          status: result.amount ? "credited" : "already",
+          amount: result.amount,
+        };
+      }
+      if (profileStorage.user) return { status: "already", amount: 0 };
       let amount = 0,
         status = "already";
       for (const receipt of receipts) {

@@ -89,7 +89,11 @@ export function drawPlayer(ctx, p, pose, image, dir, jump, alpha = 1) {
     ctx.scale(scale, scale);
   }
   ctx.globalAlpha = alpha;
-  if (image && image.complete && image.naturalWidth > 0) {
+  const drawable =
+    typeof image?.getContext === "function"
+      ? image.width > 0 && image.height > 0
+      : image?.complete && image.naturalWidth > 0;
+  if (drawable) {
     // Poz fiziğin merkezinde kalır; kostüm ve başlık tek model olarak salınır.
     if (dir === "left") ctx.scale(-1, 1);
     ctx.rotate(pose.angle);

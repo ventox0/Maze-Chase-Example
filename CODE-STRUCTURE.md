@@ -1,6 +1,6 @@
 # Kod düzeni
 
-Oyun standart ES modüllerine ayrılmıştır. `index.html` arayüzü, `styles/` görünümü, `assets/` görselleri taşır. `src/main.js` yalnızca `Game` örneğini oluşturur. JavaScript veya görseller HTML içinde gömülü değildir. Derleme ve çalışma zamanı kütüphanesi gerekmez.
+Oyun standart ES modüllerine ayrılmıştır. `index.html` arayüzü, `styles/` görünümü, `assets/` görselleri taşır. `src/main.js` hesap profilini yükler, hesap ekranını ve `Game` örneğini oluşturur. JavaScript veya görseller HTML içinde gömülü değildir. Derleme ve çalışma zamanı kütüphanesi gerekmez.
 
 | Dosya / sınıf                                            | Sorumluluk                                                                    |
 | -------------------------------------------------------- | ----------------------------------------------------------------------------- |
@@ -61,7 +61,7 @@ Güç ve beklemeler `game.gameTime`, ara sahne kendi `elapsed` değerini kullan�
 
 Bölümler `src/data/config.js` içindeki `MAX_LEVEL = 1000` ile sınırlıdır. İlk bölüm klasik haritadır; sonraki haritalar bölüm numarasına göre deterministik üretilir. Bölüm seçimi 12 kartlık sayfalar halinde sunulur. Her 5 bölüm sonunda bir sonraki bölüm için otomatik kayıt oluşturulur; son bölümde tamamlanma kaydı alınır. Manuel kayıt `K` veya menü düğmesiyle alınabilir.
 
-`SaveManager` kayıtları doğrular; oyun zamanı, oyuncu ve hayaletler, harita, yemler, yetenekler ve skor/can bilgilerini geri yükler. Mevcut localStorage anahtarları ve kayıt biçimi korunur. Aynı origin kullanılmalıdır; port değişimi ayrı kayıt alanı oluşturur.
+`SaveManager` kayıtları doğrular; oyun zamanı, oyuncu ve hayaletler, harita, yemler, yetenekler ve skor/can bilgilerini geri yükler. Mevcut localStorage anahtarları ve kayıt biçimi korunur. Misafir kayıtlarında aynı origin kullanılmalıdır; hesap kayıtları `ProfileStorage` üzerinden sunucuya eşitlenir.
 
 ## Puan dükkânı
 
@@ -84,7 +84,7 @@ Cüzdan `maze-chaser-wallet-v1` anahtarını kullanır. Her oyun koşusunun kiml
 
 ## Test düzeni
 
-`npm test` altı kontrol çalıştırır:
+`npm test` aşağıdaki tek oyunculu kontrolleri ve LAN/hesap kontrollerini çalıştırır:
 
 1. `tests/ghosts-check.cjs`, `tests/helpers/game-harness.mjs` üzerinden gerçek ESM sınıflarını yükleyerek 143 davranış kontrolünü çalıştırır. DOM/Canvas taklitleri yalnızca testlerde bulunur.
 2. `tests/arcade-check.mjs` 20 sunum, ayar, Web Audio ve kombo/kayıt kontrolünü çalıştırır.
@@ -148,3 +148,26 @@ Yakın görünüm yerel Canvas kamerasını iki kat büyütür; yaşayan oyuncuy
 ## Beş rastgele güç yemi
 
 `src/gameplay/power-pellets.js` yerleşimleri dağıtır; güç yemleri çıkarıldığında kalan yolların bağlılığını kontrol ederek en sona bırakma kuralını mümkün kılar. `map-generation.js` geometri tohumundan ayrı bir `powerSeed` kabul eder. Bölüm ve LAN başlangıcı yeni güç yemi tohumu üretir; Challenge kodu deterministik kalır. `SaveManager` geometriyi, boş alanları ve en fazla beş güç yemini doğrular; eski köşe yerleşimlerini de kabul eder.
+
+## LAN lobisi, denge ve ağ dayanıklılığı
+
+`src/data/lan-options.js` harita seçeneklerini, kadroya göre dengeyi, oturum sürelerini ve güvenli kozmetik kimlik normalleştirmesini paylaşır. `server/LanLobby.js` oyları oyuncu kimliğiyle tutar; yalnızca bağlı oyuncuları sayar, eşitlikte bağlı liderin oyunu kullanır. `LanService` başlangıçta kazanan mod/haritayı uygular ve yalnızca lobi sırasında önizleme üretir. `createLanMap(..., { mode, map })` yarışta simetrik geometri, dört simetrik güç yemi ve merkez alanında rastgele beşinci güç yemi kurar. Her LAN bölümünde altı hayalet kalır; bölümün oyuncu sayısı hız/çıkış/özel yetenek beklemelerini belirler. Hedef yükü yakınlık hesabına eklenir.
+
+`LanWorld` başarılı toplama, hayalet teması ve yetenek kullanımından maç istatistiklerini üretir. `LanPanels` oylama, görünüm seçimi, sonuç tablosu ve bağlantı şeridini sunar. `LanAppearance`, tek oyunculu `AssetLoader` atlas kırpmasını ve `AvatarLayout` yerleşimini kullanır; 64 girişli Canvas/kaynak önbellekleri oyun içinde ve lobide aynı modeli gösterir. `ArcadeDrawing.drawPlayer` hem Image hem kompoze Canvas kaynaklarını kabul eder.
+
+`LanClient` ping ölçer; ilk geçerli snapshot öncesi bağlı sayılmaz. Akış watchdog'u, 30 saniyelik geri dönüş, artan snapshot sürümleri, aynı seq ile komut tekrarları ve son yönü saklayan kuyruk ağ gecikmesini yönetir. Ağ testleri `tests/lan-readiness-check.mjs` içinde gerçek HTTP/SSE üzerinde çalışır. Oyuncu oturumu aynı Bearer token ile döner; kozmetik kimlikleri sunucu kataloğundan doğrulanır, istemci kaynak URL'si kabul edilmez. Hesap kalıcılığı ayrı `AccountStore` deposunda tutulur; misafir cüzdanı yerel kalır.
+
+## Hesap profili ve oda yetkileri
+
+- `server/AccountStore.js`: atomik JSON kayıtları, hesap/session özeti, kullanıcı başına seri profil işlemleri ve revision kontrolü. Public okumalar bekleyen yazıları bitirir. Özel solo/görev/LAN ödeme eşikleri tekrar krediyi engeller; alışveriş katalog fiyatından hesaplanır. Kısmen tamamlanmış yazı mevcut profilin üstüne yazılmaz.
+- `server/Password.js`: native scrypt ve sabit zamanlı karşılaştırma; hesap/oda şifresini hash olarak saklar. Şifre karmaşıklığı veya uzunluk kuralı uygulamaz. Pahalı scrypt işlemleri bellek kullanımını sınırlamak için sırayla yürür.
+- `server/AccountService.js`, `http.js`: register/login/me/profile/import/logout API, JSON/body limitleri, origin kontrolü, HttpOnly oturum cookie'si ve giriş/katılım hız sınırı. Çıkış yalnızca ilgili hesap oturumunun odadaki üyeliğini kaldırır.
+- `src/account/ProfileStorage.js`: mevcut senkron `getItem/setItem` yüzeyi üzerinden misafir localStorage ve hesap profilini ayırır. Hesap değişiklikleri debounce/CAS retry ile sunucuya gider, yalnızca sahibine ait pending cache tutulur. BroadcastChannel aynı origin sekmelerini günceller; hesap değişimi eski sekmeleri yeniler.
+- `src/account/AccountUI.js`, `messages.js`, `styles/account.css`: iki alanlı hesap dialog'u, kayıt/giriş/çıkış, profil durumu, tekrar deneme ve boş hesaba açıkça seçilen tek seferlik misafir aktarımı. Tek oyunculu oyunda dialog açıkken oyun durur ve yazılan tuşlar oyun girdisine gitmez.
+- `src/data/account-profile.js`: hesapta eşitlenen anahtarların beyaz listesi. `PointWallet`, `MissionProgress`, `SaveManager`, `Game` ve `ChallengeMode` ortak adaptörü kullanır. Dil/ses/görüntü cihaz tercihi olarak kalır.
+
+`LanService` üyeleri `player` ve `spectator` rolleriyle ayırır. İzleyici simülasyonda aktör değildir; en fazla 8 izleyici izleme/ping/ayrılma dışında komut gönderemez. Şifre kontrolü ve ban hem oyuncuya hem izleyiciye uygulanır. Oda listesi gizli odaları dışarıda tutar, şifreli odayı yalnızca locked bayrağıyla tanımlar. Host kick SSE `removed` olayı gönderir ve üyeliği siler; ban hesap kimliği veya misafir cookie'sine bağlanır. Hesaplı üyede Bearer oda token'ına ek olarak doğru hesap cookie'si gerekir.
+
+LAN ödülleri `queueReward()` ile **istemci talebinden bağımsız** disk cüzdanına işlenir. `/api/lan/rewards` yalnızca mevcut oyuncunun sunucuda üretilen makbuzlarının kaydını bekler ve güncel profil döndürür; miktar istemciden alınmaz. `LanRewards` hesaplı oyuncuda bu profili yeniler, misafirde önceki yerel ödeme yolunu kullanır. Solo skor/görev bildirimleri ve ilk misafir aktarımı istemciye güvenmeye devam eder; bu, LAN simülasyonunun sunucu yetkisinden ayrı bir sınırdır.
+
+`ACCOUNT_DATA_DIR` statik dosya servisi dışında tutulur; varsayılan `.data/`, Docker'da `/app/.data` ve kalıcı volume. Dosya deposu tek sunucu süreci içindir. Hesap/cüzdan kayıtları kalıcı, oda/world/oda banları RAM'dedir. `tests/accounts-check.mjs` izole geçici dizinle çalışır ve gerçek oyuncu bakiyelerini değiştirmez.

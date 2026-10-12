@@ -1,3 +1,4 @@
+import { AccountService } from "../server/AccountService.js";
 import { createServer } from "node:http";
 import { LanService, lanUrls } from "../server/LanService.js";
 import { readFile, stat } from "node:fs/promises";
@@ -17,11 +18,30 @@ const MIME = {
 };
 
 // Oyun derleme gerektirmez; bu sunucu ESM ve görselleri HTTP ile sunar.
-export function createDevServer(root = PROJECT_ROOT, { lan = false } = {}) {
+export function createDevServer(
+  root = PROJECT_ROOT,
+  {
+    lan = false,
+    accountDir = process.env.ACCOUNT_DATA_DIR || resolve(PROJECT_ROOT, ".data"),
+  } = {},
+) {
   const projectRoot = resolve(root);
+  const accounts = new AccountService(accountDir);
   let lanService;
   const server = createServer(async (req, res) => {
     const url = new URL(req.url, "http://localhost");
+    if (await accounts.handle(req, res, url)) return;
+    if (url.pathname === "/health" && req.method === "GET") {
+      try {
+        await accounts.store.ready;
+        res.writeHead(200);
+        res.end("ok");
+      } catch {
+        res.writeHead(503);
+        res.end("unavailable");
+      }
+      return;
+    }
     if (lanService && (await lanService.handle(req, res, url))) return;
     if (url.pathname === "/api/lan/info" && req.method === "GET") {
       res.writeHead(200, { "Content-Type": "application/json" });
@@ -56,6 +76,16 @@ export function createDevServer(root = PROJECT_ROOT, { lan = false } = {}) {
     }
     let filename = resolve(projectRoot, `.${pathname}`);
     const inside = relative(projectRoot, filename);
+    const privateData = relative(accounts.store.directory, filename);
+    if (
+      !privateData ||
+      (!privateData.startsWith(`..${sep}`) &&
+        privateData !== ".." &&
+        !privateData.startsWith(sep))
+    ) {
+      sendError(403, "Forbidden");
+      return;
+    }
     if (inside === ".." || inside.startsWith(`..${sep}`)) {
       sendError(403, "Forbidden");
       return;
@@ -78,7 +108,11 @@ export function createDevServer(root = PROJECT_ROOT, { lan = false } = {}) {
       );
     }
   });
-  if (lan) lanService = new LanService(server);
+  if (lan) {
+    lanService = new LanService(server, accounts);
+    accounts.onLogout = (id, token) => lanService.disconnectAccount(id, token);
+  }
+  server.accounts = accounts;
   server.lanService = lanService;
   return server;
 }
@@ -94,6 +128,20 @@ if (
     console.error(`Sunucu başlatılamadı: ${error.message}`);
     process.exitCode = 1;
   });
+  let shuttingDown = false;
+  const shutdown = async () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    server.lanService?.close();
+    await new Promise((resolve) => server.close(resolve));
+    await Promise.allSettled([
+      server.accounts.store.authQueue,
+      ...server.accounts.store.queues.values(),
+      ...(server.lanService?.rewardWrites.values() || []),
+    ]);
+  };
+  process.once("SIGINT", () => void shutdown());
+  process.once("SIGTERM", () => void shutdown());
   server.listen(port, lan ? "0.0.0.0" : "127.0.0.1", () => {
     console.log(
       `Maze Chaser hazır: http://127.0.0.1:${port}${lan ? "/lan.html" : ""}`,

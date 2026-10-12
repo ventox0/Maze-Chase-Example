@@ -15,6 +15,8 @@ export class InputController extends GameComponent {
     this.bound = true;
     window.addEventListener("keydown", (event) => {
       if (event.ctrlKey || event.metaKey || event.altKey) return;
+      // Account fields keep native text/Enter handling while the game is paused.
+      if (document.getElementById("account-dialog")?.open) return;
       const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
       if (
         this.game.settings.dialog.open ||

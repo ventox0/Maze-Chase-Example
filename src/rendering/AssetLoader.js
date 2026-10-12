@@ -19,12 +19,13 @@ export class AssetLoader extends GameComponent {
     this.cosmetics = {};
   }
 
-  loadSprites() {
+  loadSprites({ decorateDOM = true } = {}) {
     for (const [key, source] of Object.entries(SPRITE_SOURCES)) {
       const image = new Image();
       image.src = source;
       this.players[key] = image;
     }
+    if (!decorateDOM) return;
     document.querySelectorAll("[data-sprite]").forEach((image) => {
       image.src = SPRITE_SOURCES[image.dataset.sprite];
     });

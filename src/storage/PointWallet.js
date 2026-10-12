@@ -1,3 +1,4 @@
+import { profileStorage } from "../account/ProfileStorage.js";
 import { GameComponent } from "../core/GameComponent.js";
 import { MISSION_BY_ID } from "../data/missions.js";
 import { SHOP_ITEMS } from "../data/shop.js";
@@ -167,7 +168,7 @@ export class PointWallet extends GameComponent {
   }
   load() {
     try {
-      const raw = localStorage.getItem(this.key),
+      const raw = profileStorage.getItem(this.key),
         p = raw && raw.length < 262144 ? JSON.parse(raw) : null;
       this.profile = this.validate(p) ? p : this.empty();
     } catch (_) {
@@ -178,7 +179,7 @@ export class PointWallet extends GameComponent {
   refresh() {
     if (this.storageUnavailable) return;
     try {
-      const raw = localStorage.getItem(this.key),
+      const raw = profileStorage.getItem(this.key),
         p = raw && raw.length < 262144 ? JSON.parse(raw) : null;
       if (this.validate(p)) this.profile = p;
     } catch (_) {}
@@ -186,7 +187,7 @@ export class PointWallet extends GameComponent {
   persist(next, strict = false) {
     if (!this.validate(next)) return false;
     try {
-      localStorage.setItem(this.key, JSON.stringify(next));
+      profileStorage.setItem(this.key, JSON.stringify(next));
       this.storageUnavailable = false;
     } catch (_) {
       this.storageUnavailable = true;

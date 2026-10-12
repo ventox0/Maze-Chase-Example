@@ -26,18 +26,23 @@ Sunucu `0.0.0.0:8765` üzerinde açılır; terminal yerel IPv4 katılım adresle
 
 1. Aynı Wi-Fi/Ethernet ağına bağlanın. Bir bilgisayar sunucuyu çalıştırsın.
 2. Oyuncu adını, iki farklı Q/E yeteneğini ve **İş birliği / Puan yarışı** modunu seçip oda oluşturun.
-3. Oda kodunu veya katılım bağlantısını paylaşın. Diğer oyuncular adlarını girip katılsın.
-4. En az iki, en fazla dört oyuncu **Hazırım** dediğinde oda sahibi **Oyunu başlat** düğmesine basar.
+3. Oda kodunu veya katılım bağlantısını paylaşın. Diğer oyuncular adlarını girip katılsın. Lobide **mod ve harita için oy verin**; üç seçenek Neon Sokaklar, Kavşaklar ve Çevre Yolu. Bağlı oyuncuların oyları sayılır; eşitlikte bağlı oda sahibinin oyu, sonra seçenek sırası belirler. Oda sahibinin maçı başlatması bu sonucu uygular. Seçilen harita lobide açıkça önizlenir.
+4. En az iki, en fazla dört oyuncu **Hazırım** dediğinde oda sahibi **Oyunu başlat** düğmesine basar. Oy veya görünüm değiştirmek hazır durumunu kaldırır; hazırken seçimleri değiştirmek için önce hazır durumundan çıkın.
 
 - **İş birliği:** kişisel üç can ve skor, ortak takım toplamı. Yemleri temizleyip merkez can yemini alın; hayaletler son yemle kalkar. Can yemi yaşayan oyuncuların her birine +1 can veya üç canı varsa +500 puan verir. Oda sahibi sonraki haritayı açar; elenen takım arkadaşları bir canla geri döner. Takımın bütün canları biterse maç sona erer.
 - **Puan yarışı:** aynı labirentte üç dakika. Küçük yem +10, güç yemi +50, hayalet +200; puan ilk toplayana yazılır. Süre bitince, bir oyuncu kalınca veya merkez can yemi toplanınca en yüksek toplam puan kazanır; eşitlikte ortak kazananlar gösterilir. Merkez can yemi ödülü onu alan oyuncuya verilir.
+- Oyuncu kartları dükkânda seçilmiş kostüm ve başlığı gösterir; aynı görünüm normal oyun halinde haritada da kullanılır. Güç/yetenek etkileri kendi modellerini gösterir. **Dükkânda görünüm seç** ayrı sekmede normal dükkânı açar; ardından **Dükkândaki görünümümü kullan** seçimi odaya aktarır. Özel tam kostümler başlıkla birleştirilmez.
+- Bölüm/maç sonunda **Maç istatistikleri** kişisel skor, küçük yem, güç yemi, yenilen hayalet, can kaybı ve başarılı yetenek kullanımını gösterir. Bunlar maç boyunca birikir ve yeni maç başlatılınca sıfırlanır. Görünüm mobilde yatay kaydırılabilir.
+- Kadro 6 hayalet olarak kalır. İki/üç/dört oyuncu için hayalet hızı sırasıyla **%90 / %100 / %110**, başlangıç çıkış aralığı **1,25 / 1 / 0,75 saniye**, özel yetenek bekleme çarpanı **1,15 / 1 / 0,85** olur. Kadro bölüm başında kilitlenir; can kaybı zorluğu düşürmez. Hayaletlerin yakınlık seçimi mevcut hedef baskısını da hesaba katar.
+- Yarış haritaları yatay ve dikey simetriktir: başlangıç çevresindeki yem fırsatları ve merkeze yol uzaklığı eşittir. Dört güç yemi simetrik dörtlü, beşinci güç yemi ortak merkez alanında rastgele olarak, her maç farklı konumlarda yerleşir; hayalet çıkışları karşılıklı çiftler halindedir. İş birliği haritaları serbest prosedürel üretimi kullanır.
+- **Ping** ve bağlantı kalitesi maç alanının üstünde gösterilir. 120 ms üzeri orta, 250 ms üzeri veya 1,2 saniyeden eski veri yüksek gecikme olarak işaretlenir. Bağlantı kaybında harita son alınan konumları gösterir; yeniden bağlanma şeridinde 30 saniyelik oturum süresi ve **Şimdi yeniden dene** düğmesi görünür. Altı saniye snapshot gelmeyen sessiz bağlantı da yeniden açılır. Dönüşte oyuncu kimliği, skor ve canlar korunur.
 - **Yakın görünüm** düğmesi haritayı iki kat büyütür ve karakterini takip eder; **Haritanın tamamı** bütün alanı gösterir. Dar ekranlarda yakın görünüm varsayılandır.
 - İki LAN modu da **41×35 hücrelik büyük haritada** oynanır; tek oyunculu 21×23 harita korunur. Her LAN bölümünde **6 farklı hayalet** bulunur. İlk kadro Blaze, Pinky, Glitch, Cinder, Rush ve Moss’tur; ilerleyen bölümlerde Dozer ve Shade uzman kadrosuna girer. Dört oyuncu sahanın dört tarafında, hayaletler merkez odasında doğar.
-- İş birliğinde bölüm sonundaki takım toplamının **%50’si her oyuncunun normal dükkân bakiyesine** aktarılır; oyuncu sayısına bölünmez. Puan yarışında maç sonundaki kişisel skorun %50’si ödenir. Yeni bölüm ve maç sonu yalnızca ödenmemiş farkı ekler; yenileme/geri bağlanma aynı ödülü tekrar vermez. Bakiye aynı tarayıcı ve site adresindeki normal dükkândadır. Depolama hatası olursa ödül yazılmaz; ekrandaki **Tekrar dene** ile yeniden alınabilir.
+- İş birliğinde bölüm sonundaki takım toplamının **%50’si her oyuncunun normal dükkân bakiyesine** aktarılır; oyuncu sayısına bölünmez. Puan yarışında maç sonundaki kişisel skorun %50’si ödenir. Yeni bölüm ve maç sonu yalnızca ödenmemiş farkı ekler; yenileme/geri bağlanma aynı ödülü tekrar vermez. Hesapla oynarken ödül sunucudaki cüzdana kaydedilir ve başka cihazda aynı hesapla açılır; misafir bakiyesi aynı tarayıcı ve site adresindeki normal dükkândadır. Depolama hatası olursa ödül yazılmaz; ekrandaki **Tekrar dene** ile yeniden alınabilir.
 - Canları biten oyuncu haritayı karartmadan takımını izler. **İzlenen oyuncu** listesinden yaşayan, bağlı bir arkadaş seçilebilir; yakın kamera seçilen kişiyi takip eder.
 - Güç yemi bütün oyuncular için 10 saniyelik korku modu başlatır. Her oyuncunun yetenekleri ve beklemeleri ayrıdır. Zıplama, mıknatıs, boost ve hasar görmezlik desteklenir. LAN'da hayalet yeme geri bildirimi diğer oyuncuların oyununu durdurmaz.
 - Bağlantı kesilince karakter hareket etmez ve yeni hedef olmaz. Aynı sekmeyi yenileyince 30 saniye içinde aynı oyuncu/puan/canla geri bağlanılır. Oda sahibi ayrılırsa liderlik bağlı oyuncuya geçer. Bütün bağlantılar kesilince simülasyon bekler; odalar boş kalınca kapanır.
-- Oda ve maçlar sunucunun RAM'inde tutulur; sunucu kapanırsa maçlar sona erer. Tek oyunculu görev ve kayıtlar değişmez. Tek oyunculu oyunun menü duraklatması LAN maçını durdurmaz.
+- Oda ve maçlar sunucunun RAM'inde tutulur; sunucu kapanırsa maçlar sona erer. Hesap profilleri disk üzerinde kalır; misafir görev ve kayıtları tarayıcıda korunur. Tek oyunculu oyunun menü duraklatması LAN maçını durdurmaz.
 
 Sadece tek oyunculu oynarken `npm run dev` kullanılır; bu komut loopback üzerinde açılır ve LAN ekranı `npm run lan` gerektiğini gösterir. LAN sunucusu aynı anda tek oyunculu oyunu da servis eder. Statik GitHub Pages bir LAN sunucusu çalıştıramaz; barındıran bilgisayarda bu Node komutu gerekir.
 
@@ -79,7 +84,7 @@ Altı kategori ve tümü/devam eden/ödülü hazır/ödülü alınan filtreleri,
 
 İlerleme `maze-chaser-missions-v1`, alınan ödüller mevcut cüzdandaki `missionRewards` listesinde saklanır. Daha önceki toplam kazanılan puan ve rekor içeri alınır; bilinmeyen eski yem/hayalet sayıları tahmin edilmez. Görev ekranı açıkken oyun ve süreler durur. Sayfayı yenilemek veya oyun kaydını yüklemek görev ilerlemesini geri almaz.
 
-Yeni oyun kayıtları koşu başına görev sayaçlarını da taşır; aynı eski noktayı tekrar oynarken sayılmış olaylar iki kez ilerleme yazmaz. Sayaçsız eski kayıtlar açılmaya devam eder; bu kayıtlarda önceki kredilendirilmiş skor aşıldıktan sonraki olaylar sayılır. İlerleme/ödüller aynı tarayıcı ve origin'e bağlıdır.
+Yeni oyun kayıtları koşu başına görev sayaçlarını da taşır; aynı eski noktayı tekrar oynarken sayılmış olaylar iki kez ilerleme yazmaz. Sayaçsız eski kayıtlar açılmaya devam eder; bu kayıtlarda önceki kredilendirilmiş skor aşıldıktan sonraki olaylar sayılır. Misafir ilerleme/ödülleri tarayıcı ve origin’e bağlıdır; hesapla oynarken sunucuya eşitlenir.
 
 ## Proje yapısı
 
@@ -90,6 +95,7 @@ server/                     Yetkili simülasyon ve HTTP/SSE oda servisi
 index-ghosts.html            Eski adres için yönlendirme
 src/
   main.js                   Oyun örneğini oluşturup başlatır
+  account/                  Hesap ekranı ve bulut profil depolama adaptörü
   lan/                      LAN istemcisi, arayüz, interpolasyon ve iki dil
   core/                     Game, ortak bileşenler ve DOM bağlantıları
   gameplay/                 Labirent, hareket, oyuncu, hayaletler, yetenekler
@@ -119,7 +125,7 @@ npm test
 
 ## Kayıtlar ve puanlar
 
-Kayıtlar, dil tercihi, rekor, cüzdan ve koleksiyon `localStorage` içinde tutulur. Modüler yapıya geçişte mevcut anahtarlar ve kayıt biçimi korunmuştur. Aynı tarayıcı ve aynı site adresindeki kayıtlar kullanılmaya devam eder; farklı port veya başka tarayıcı ayrı depolama alanıdır.
+Misafir kayıtları, rekor, cüzdan ve koleksiyon mevcut `localStorage` anahtarlarında korunur. Hesapla giriş yapınca bakiye, toplam gelir, envanter/giyim, görevler, rekorlar ve iki kayıt yuvası sunucu profilinden yüklenir. Dil, ses ve görüntü tercihleri cihazda kalır. Misafir verisi hesaba otomatik eklenmez; **Hesabım → Bu cihazdaki kayıtlarımı aktar** boş hesaba bir kez aktarır ve misafir kopyasını silmez.
 
 - `K` / **Kaydet**: mevcut oyunu kaydet.
 - **Kaydet ve menü**: kaydet ve başlangıç ekranına dön.
@@ -129,10 +135,45 @@ Kayıtlar, dil tercihi, rekor, cüzdan ve koleksiyon `localStorage` içinde tutu
 
 ## Yayınlama
 
-Bu klasörün `index.html`, `src/`, `styles/` ve `assets/` içeriğini statik bir HTTP sunucusuna yüklemek yeterlidir. `scripts/`, `tests/`, `archive/` ve belgeler oyun için zorunlu değildir. Görsel URL’leri modül konumundan çözüldüğü için proje bir alt dizinde de çalışır.
+Yalnızca misafir tek oyunculu oyun için `index.html`, `src/`, `styles/` ve `assets/` içeriğini statik bir HTTP sunucusuna yüklemek yeterlidir. Hesaplar ve multiplayer için aşağıdaki Node sunucusu gerekir. `scripts/`, `tests/`, `archive/` ve belgeler oyun için zorunlu değildir. Görsel URL’leri modül konumundan çözüldüğü için proje bir alt dizinde de çalışır.
 
 ## Güç yemi dağılımı
 
 Bölüm, Challenge ve iki LAN modunda **5 güç yemi** rastgele, birbirinden uzak yol hücrelerine yerleştirilir. Normal ve LAN oyununda her yeni bölüm/maç yeni konumlar üretir; Challenge aynı kodla tekrarlandığında aynı yerleşimi korur. Güç yemsiz Challenge kuralı bu beş yemi küçük yeme çevirir. Oyuncu doğma hücreleri ve merkez can yemi alanına güç yemi konmaz.
 
 Kaydedilen harita konumları aynen geri yüklenir. Eski dört köşe güç yemli kayıtlar da açılır. `tests/lan-update-check.mjs` rastgele yerleşim, kural erişilebilirliği, ödül makbuzları, depolama hatası/yeniden deneme ve izleme ekranını sınar.
+
+## Online geçiş hazırlığı
+
+LAN skorları, maç istatistikleri ve %50 ödül makbuzları yetkili sunucuda hesaplanır; istemci skor, bakiye veya konum belirleyemez. Komut yeniden denemeleri aynı sıra numarasını kullanır; yön kuyruğu son isteğe indirgenir ve eski yetenek girişleri atılır. Snapshot sürümleri gecikmiş veya tekrarlanan durumları ayıklar. Gerçek HTTP testleri gecikme/jitter, atlanan snapshot, kaybolan komut yanıtı ve aynı oturuma geri bağlantıyı doğrular; bu testler gerçek internet paket kaybının bir ölçümü değildir.
+
+Hesapla katılan oyuncunun kimliği ve kozmetikleri sunucu profilinden doğrulanır. LAN ödülleri sunucuda hesaplanır ve disk üzerindeki cüzdana yalnızca bir kez işlenir. Solo oyun ve görev olayları istemciden bildirilir; tek oyunculu hile denetimi bu sürümün kapsamına dahil değildir. Misafir ilerlemesinin ilk aktarımı da yerel veriye güvenir. Oda oturumları RAM'dedir; sunucu yeniden başladığında maçlar sona erer, kaydedilmiş hesap bakiyesi ve profiller kalır.
+
+## Hesap ve özel odalar
+
+**Hesabım** düğmesi hem ana oyunda hem LAN sayfasında vardır. Kayıt ve giriş yalnızca kullanıcı adı ve şifre ister; e-posta ve şifre tekrarı yoktur. Kullanıcı adı 1–24 karakter, büyük/küçük harf duyarsızdır. Şifre boş olamaz; uzunluk, rakam, sembol veya karakter türü şartı yoktur. Şifreler salt içeren scrypt özetiyle saklanır (`N=131072, r=8, p=1`; [OWASP kaynağı](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)). Hesap oturumu 30 günlük HttpOnly/SameSite cookie kullanır; HTTPS üzerinde Secure eklenir.
+
+Profil yazımı yarım saniyelik aralıkla birleştirilir. Hesap düğmesindeki ⟳ kaydın sürdüğünü, ! hata olduğunu gösterir. Kaydedilemeyen değişiklikler yalnızca o hesabın cihaz önbelleğinde korunur ve bağlantı gelince tekrar gönderilir. Cihaz değiştirmeden **Hesabım** ekranında “Profil sunucuda kayıtlı” durumunu kontrol et. **Profili yenile** sunucudaki son durumu getirir. Bir hesap başka cihazlarda kullanılabilir; aynı odada aynı hesapla ikinci oyuncu/izleyici oluşturulamaz.
+
+- Oda oluştururken isteğe bağlı **oda şifresi** koyabilir ve **Odayı listeden gizle** seçebilirsin. Gizli oda kod/link ile açılır; şifre bağlantıya yazılmaz, ayrı paylaşılır. Şifreli odalarda oyuncu ve izleyici aynı doğrulamadan geçer.
+- Oda listesi **mod** ve **durum** filtrelerine sahiptir. Başlamış ve dolu odalar izleme için listede kalır.
+- **Katılım şekli → İzleyici** ile devam eden maça da girilebilir. Oda başına en fazla 4 oyuncu ve 8 izleyici vardır. İzleyici kadroya, dengeye ve hazır kontrolüne dahil edilmez; komut/oy gönderemez, maç ödülü alamaz. Kamera yaşayan oyuncular arasında değiştirilebilir.
+- Oda sahibi oyuncu/izleyici satırındaki **Çıkar** düğmesiyle üyeyi kaldırabilir. Çıkarılan hesap aynı odaya geri dönemez. Misafir kontrolü cihaz cookie’sine dayanır. Oda sahibinin değişmesi yetkiyi yeni sahibine geçirir.
+
+## Node / Dokploy yayını
+
+`Dockerfile` bağımlılıksız Node 22 sunucusunu `3000` portunda başlatır. Dokploy'da Dockerfile build seç, domain/proxy'yi container'ın **3000** portuna yönlendir ve **HTTPS** aç. SSE için proxy buffering kapalı ve uzun süreli HTTP bağlantıları açık olmalı (`X-Accel-Buffering: no` sunucuda gönderilir).
+
+`.env.example` ayarları:
+
+| Değişken                               | Anlamı                                                                               |
+| -------------------------------------- | ------------------------------------------------------------------------------------ |
+| `PORT=3000`                            | Container portu; yerelde varsayılan 8765                                             |
+| `ACCOUNT_DATA_DIR=/app/.data`          | Hesap/profil dizini; **kalıcı volume'u buraya bağla**                                |
+| `REQUIRE_LOGIN=true`                   | Multiplayer oyuncu/izleyici katılımında hesap zorunluluğu; yerelde varsayılan kapalı |
+| `TRUST_PROXY=true`                     | Yalnızca güvenilir proxy arkasında forwarded HTTPS/IP bilgisine güven                |
+| `PUBLIC_ORIGIN=https://senin-domainin` | Gerçek oyun domain'i; yerel geliştirmede tanımlama                                   |
+
+`.env.example` örnektir; sunucu `.env` dosyasını otomatik okumaz. Değişkenleri Dokploy ortam ayarlarında veya shell üzerinden tanımla. `/health` hesap dizini hazırsa 200, okunamıyorsa 503 döner. Hesap dosyaları statik HTTP erişimine ve Git'e kapalıdır; `.data/` yedeklenmelidir. Volume olmadan container yenilenince hesap verisi kaybolabilir. Mevcut dosya deposu **tek Node süreci / tek replica** içindir; yatay ölçeklemeden önce ortak veritabanı ve oda altyapısı gerekir.
+
+`tests/accounts-check.mjs` tek karakterli/uzun Unicode şifreyi, yanlış giriş/çapraz origin reddini, profil izolasyonunu, diskten tekrar yüklemeyi, çakışan yazıları, tek seferlik aktarım/ödülleri, özel odaları, canlı izleyiciyi, çıkarma yetkisini ve offline yeniden denemeyi gerçek HTTP/SSE ile doğrular. Docker yayını bu değişiklikle hazırlanır; otomatik olarak deploy edilmez.

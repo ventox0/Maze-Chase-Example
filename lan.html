@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#0b0b17" />
     <title>Kasaba Games · Alpha LAN</title>
     <link rel="stylesheet" href="./styles/lan.css" />
+    <link rel="stylesheet" href="./styles/account.css" />
   </head>
   <body>
     <header class="topbar">
@@ -18,6 +19,7 @@
         /><span>Kasaba Games</span></a
       >
       <div class="header-end">
+        <button class="quiet" type="button" data-account-open>Hesabım</button>
         <span class="build">alpha.0.1.0 · LAN</span
         ><button id="language" class="quiet" type="button">EN</button>
       </div>
@@ -77,6 +79,17 @@
               </div>
             </fieldset>
             <p id="mode-description" class="muted"></p>
+            <label for="create-password" data-t="createPassword"
+              >Oda şifresi (isteğe bağlı)</label
+            ><input
+              id="create-password"
+              type="password"
+              autocomplete="new-password"
+            /><label class="room-privacy"
+              ><input id="hide-room" type="checkbox" /><span data-t="hideRoom"
+                >Odayı listeden gizle</span
+              ></label
+            >
             <button id="create" class="primary" disabled data-t="create">
               Oda oluştur
             </button>
@@ -92,7 +105,40 @@
                 Katıl
               </button>
             </div>
+            <label for="join-password" data-t="joinPassword">Oda şifresi</label
+            ><input
+              id="join-password"
+              type="password"
+              autocomplete="current-password"
+            />
+            <label for="join-role" data-t="joinAs">Katılım şekli</label
+            ><select id="join-role">
+              <option value="player" data-t="playRole">Oyuncu</option>
+              <option value="spectator" data-t="watchRole">İzleyici</option>
+            </select>
             <h3 data-t="rooms">Açık odalar</h3>
+            <div class="room-filters">
+              <label
+                ><span data-t="filterMode">Mod</span
+                ><select id="filter-mode">
+                  <option value="all" data-t="filterAll">Hepsi</option>
+                  <option value="coop" data-t="coop">İş birliği</option>
+                  <option value="race" data-t="race">Puan yarışı</option>
+                </select></label
+              ><label
+                ><span data-t="filterStatus">Durum</span
+                ><select id="filter-status">
+                  <option value="all" data-t="filterAll">Hepsi</option>
+                  <option value="lobby" data-t="waiting">
+                    Arkadaşlarını bekliyor
+                  </option>
+                  <option value="active" data-t="playing">Oyun başladı</option>
+                  <option value="available" data-t="filterAvailable">
+                    Boş yer var
+                  </option>
+                </select></label
+              >
+            </div>
             <div id="rooms" class="rooms"></div>
           </section>
           <section id="room-panel" hidden>
@@ -113,6 +159,40 @@
               Bağlantıyı kopyala
             </button>
             <div id="roster" class="roster"></div>
+            <div id="spectators-list"></div>
+            <section id="lobby-options" class="lobby-options">
+              <h3 data-t="voteTitle">Maç için oy ver</h3>
+              <label for="vote-mode" data-t="mode">Oda modu</label>
+              <select id="vote-mode"></select>
+              <label for="vote-map" data-t="voteMap">Harita</label>
+              <select id="vote-map"></select>
+              <p id="vote-summary" class="muted"></p>
+              <p data-t="voteHint" class="muted">
+                Hazır olmadan önce oyunu seç. Eşitlikte oda sahibinin oyu
+                belirler.
+              </p>
+              <div class="appearance-choice">
+                <img id="my-appearance" width="64" height="64" alt="" />
+                <div>
+                  <span id="appearance-name"></span
+                  ><button
+                    id="wear-current"
+                    class="quiet"
+                    type="button"
+                    data-t="wearCurrent"
+                  >
+                    Dükkândaki görünümümü kullan
+                  </button>
+                </div>
+              </div>
+              <a
+                href="./index.html"
+                target="_blank"
+                rel="noopener"
+                data-t="openWardrobe"
+                >Dükkânda görünüm seç ↗</a
+              >
+            </section>
             <fieldset id="room-loadout">
               <legend data-t="loadout">İki yetenek seç</legend>
               <div class="loadout">
@@ -188,6 +268,28 @@
               </div>
             </div>
           </div>
+          <div id="network-details" class="network-details" role="status">
+            <span id="ping-label"></span><span id="network-quality"></span
+            ><span id="balance-label"></span>
+          </div>
+          <div id="reconnect-panel" class="reconnect-panel" hidden>
+            <strong id="reconnect-title"></strong>
+            <p id="reconnect-detail"></p>
+            <progress
+              id="reconnect-progress"
+              max="30"
+              value="30"
+              aria-label="Yeniden bağlanma süresi"
+            ></progress>
+            <button
+              id="retry-connection"
+              class="quiet"
+              type="button"
+              data-t="retryConnection"
+            >
+              Şimdi yeniden dene
+            </button>
+          </div>
           <div id="spectator-controls" class="spectator-controls" hidden>
             <span id="spectator-status" role="status"></span>
             <label for="spectator-player" data-t="watchPlayer"
@@ -232,6 +334,11 @@
             ><button data-dir="right" aria-label="Sağa / Right">→</button
             ><button id="skill-q">Q</button><button id="skill-e">E</button>
           </div>
+          <section id="match-results" class="match-results" hidden>
+            <h3 id="results-title"></h3>
+            <p id="results-summary" class="muted"></p>
+            <div class="results-scroll"><table id="results-table"></table></div>
+          </section>
           <h3 data-t="scores">Skor tablosu</h3>
           <div id="scoreboard" class="scoreboard">
             <p class="muted" data-t="emptyScores">

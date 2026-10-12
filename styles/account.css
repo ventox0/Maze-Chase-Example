@@ -1,0 +1,83 @@
+.account-dialog {
+  width: min(480px, calc(100vw - 32px));
+  max-height: 90vh;
+  overflow: auto;
+  color: #f1eff8;
+  background: #131322;
+  border: 1px solid #ffffff24;
+  border-radius: 18px;
+  padding: 24px;
+  font-family: system-ui, sans-serif;
+}
+.account-dialog::backdrop {
+  background: #080912c9;
+  backdrop-filter: blur(4px);
+}
+.account-heading,
+.account-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+}
+.account-heading h2 {
+  margin: 0;
+  font-size: 24px;
+}
+.account-dialog label {
+  display: block;
+  font-size: 13px;
+  margin: 18px 0 7px;
+}
+.account-dialog input {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  color: inherit;
+  background: #080912;
+  border: 1px solid #ffffff24;
+  font: inherit;
+}
+.account-dialog button {
+  color: inherit;
+  background: #272338;
+  border: 1px solid #ffffff24;
+  border-radius: 9px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font: inherit;
+}
+.account-dialog .primary {
+  background: #ffe15b;
+  color: #17131f;
+  font-weight: 700;
+}
+.account-dialog button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.account-dialog p {
+  color: #aaa5bc;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.account-dialog .account-actions {
+  margin: 18px 0;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+#account-error {
+  color: #ff9d9d;
+}
+#account-import {
+  border-top: 1px solid #ffffff14;
+  margin-top: 20px;
+  padding-top: 10px;
+}
+[data-account-open][data-state="syncError"],
+[data-account-open][data-state="rejected"],
+[data-account-open][data-state="sessionExpired"] {
+  border-color: #ff9d9d;
+  color: #ff9d9d;
+}

@@ -1,3 +1,4 @@
+import { profileStorage } from "../account/ProfileStorage.js";
 import { POWER_PELLET_COUNT } from "../gameplay/power-pellets.js";
 import { $, canvas, loadoutDialog } from "../core/dom.js";
 import { GameComponent } from "../core/GameComponent.js";
@@ -20,7 +21,7 @@ import {
   REDUCED_CUTSCENE_DURATION,
 } from "../rendering/animation.js";
 
-// Kayıtlar yalnızca bu tarayıcıda tutulur. İki yuva birbirini ezmez.
+// Misafir kayıtları yerel, hesap kayıtları eşitlenir. İki yuva birbirini ezmez.
 export class SaveManager extends GameComponent {
   constructor(game) {
     super(game);
@@ -76,7 +77,7 @@ export class SaveManager extends GameComponent {
   load() {
     for (const slot of ["manual", "auto"]) {
       try {
-        const raw = localStorage.getItem(this.key(slot));
+        const raw = profileStorage.getItem(this.key(slot));
         const record = raw && raw.length < 128000 ? JSON.parse(raw) : null;
         this.slots[slot] = this.validate(record) ? record : null;
       } catch (_) {
@@ -85,14 +86,14 @@ export class SaveManager extends GameComponent {
     }
     try {
       this.autoEnabled =
-        localStorage.getItem("maze-chaser-autosave") !== "false";
+        profileStorage.getItem("maze-chaser-autosave") !== "false";
     } catch (_) {}
   }
 
   setAuto(enabled) {
     this.autoEnabled = Boolean(enabled);
     try {
-      localStorage.setItem("maze-chaser-autosave", String(this.autoEnabled));
+      profileStorage.setItem("maze-chaser-autosave", String(this.autoEnabled));
     } catch (_) {
       this.feedback("save.error");
     }
@@ -415,7 +416,7 @@ export class SaveManager extends GameComponent {
       return false;
     }
     try {
-      localStorage.setItem(this.key(slot), JSON.stringify(record));
+      profileStorage.setItem(this.key(slot), JSON.stringify(record));
     } catch (_) {
       this.feedback("save.error");
       return false;
