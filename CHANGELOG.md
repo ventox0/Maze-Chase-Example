@@ -12,7 +12,7 @@
 
 ### Değişenler
 
-- Dükkân satın alma ve ürün önizlemesine, Özelleştirme ise görünüm seçip kaydetmeye ayrıldı. Satın alınan ürün artık otomatik takılmıyor.
+- Dükkan satın alma ve ürün önizlemesine, Özelleştirme ise görünüm seçip kaydetmeye ayrıldı. Satın alınan ürün artık otomatik takılmıyor.
 - Yeni tam giysiler ana karakterin yuvarlak, kolsuz ve bacaksız biçimine uyarlandı. Uyumlu giysi/başlık birlikte veya ayrı kullanılabilir ve tam giysi ayrı başlıkla birleştirilemez.
 - Tüm tam giysilerin fiyatları **3 ile çarpıldı**; mevcut aralık **16.500–66.000 puan**. Diğer giysi ve başlık fiyatları aynı.
 - Multiplayer gardırop bağlantısı doğrudan Özelleştirmeyi açar; kaydedilen görünüm “Seçtiğim görünümü kullan” ile odaya aktarılır.
